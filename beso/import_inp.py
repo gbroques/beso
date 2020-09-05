@@ -96,6 +96,38 @@ def import_inp(filename, domains_from_config, domain_optimized, shells_as_compos
                 elif line_part.split('=')[0].strip().upper() == "ELSET":
                     current_elset = line_part.split('=')[1].strip()
 
+            # Five aspects of an element characterize its behavior:
+            # 1. Family
+            # 2. Degrees of freedom (directly related to the element family)
+            # 3. Number of nodes
+            # 4. Formulation
+            # 5. Integration
+            #
+            # Each element in Abaqus has a unique name (e.g T2D2, S4R, C3D8I, or C3D8R).
+            # The element name identifies each of the five aspects of an element.
+
+            # Sources:
+            # https://abaqus-docs.mit.edu/2017/English/SIMACAEELMRefMap/simaelm-c-ov.htm#simaelm-c-ov
+            # https://abaqus-docs.mit.edu/2017/English/SIMACAEELMRefMap/simaelm-c-general.htm
+
+            # Abaqus uses the letter R at the end of the element name to label reduced-integration elements.
+            # https://abaqus-docs.mit.edu/2017/English/SIMACAEGSARefMap/simagsa-c-ctmreduced.htm
+
+            # Shell element names in Abaqus begin with the letter “S.”
+            # Axisymmetric shells all begin with the letters “SAX.”
+            # Source: https://abaqus-docs.mit.edu/2017/English/SIMACAEGSARefMap/simagsa-c-elmshell.htm
+
+            # "C" is for solid (continuum) elements.
+            # "PE" is for plane strain
+            # "PS" is for plane stress
+            # Source: https://abaqus-docs.mit.edu/2017/English/SIMACAEELMRefMap/simaelm-c-solidcont.htm
+
+            # "M" is for membrane elements.
+            # https://abaqus-docs.mit.edu/2017/English/SIMACAEELMRefMap/simaelm-c-membrane.htm
+            # 3D is for three-dimensional
+
+            # See element types CalculiX:
+            # http://www.dhondt.de/ccx_2.11.pdf
             if elm_type in ["S3", "CPS3", "CPE3", "CAX3", "M3D3"]:
                 elm_category = all_tria3
                 number_of_nodes = 3
