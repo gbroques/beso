@@ -48,7 +48,7 @@ def import_inp(filename, domains_from_config, domain_optimized, shells_as_compos
         msg = ("CalculiX input file " + filename +
                " not found. Check your inputs.")
         logging.error("\nERROR: " + msg + "\n")
-        raise Exception(msg)
+        raise IOError(msg)
     line = "\n"
     include = ""
     while line != "":

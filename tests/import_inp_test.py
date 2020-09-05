@@ -124,6 +124,15 @@ class ImportImpTest(unittest.TestCase):
         self.assertEqual(plane_stress, set())
         self.assertEqual(axisymmetry, set())
 
+    def test_import_inp_when_file_not_found_raises_io_error(self):
+        with self.assertRaises(IOError) as context:
+            import_inp('non-existent-file.inp', [], {}, False)
+
+        self.assertEqual(
+            'CalculiX input file non-existent-file.inp not found. Check your inputs.',
+            str(context.exception)
+        )
+
 
 if __name__ == '__main__':
     unittest.main()
