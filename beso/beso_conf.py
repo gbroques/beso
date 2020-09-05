@@ -79,8 +79,9 @@ decay_coefficient = -0.2  # k - exponential decay coefficient to dump mass_addit
                           # k = -0.2 ~ after 10 iterations slows down approximately 10 times
                           # k = 0 ~ no decaying
 
+                             # TODO: If we know we want COMPOSITE for S8R and S6 shell elements, then why make it a config option?
 shells_as_composite = False  # True - use more integration points to catch bending stresses (ccx 2.12 WILL FAIL for other than S8R and S6 shell elements)
-                            # False - use ordinary shell section
+                             # False - use ordinary shell section
 reference_points = "integration points"  # "integration points" - read int. pt values (stresses) from .dat file,
                                          # "nodes" - optimization will read nodal values (stresses) from .inp file (model MUST NOT contain shell nor beam elements)
 reference_value = "max"  # "max" - maximal value on element,
