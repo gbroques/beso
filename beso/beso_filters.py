@@ -301,6 +301,8 @@ def run1(file_name, sensitivity_number, weight_factor_node, M, weight_factor_dis
 # r_min should be larger than half of
 # the size of one element. It is recommended that r_min is selected
 # to be about 1–3 times of the size of one element.
+# Also described in
+#   "Using BESO method to optimize the shape and reinforcement of the underground openings"
 def prepare2s(cg, cg_min, cg_max, r_min, opt_domains, weight_factor2, near_elm):
     sector_elm = {}
     # preparing empty sectors
