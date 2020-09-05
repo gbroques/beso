@@ -273,7 +273,7 @@ def import_inp(file_name, domains_from_config, domain_optimized, shells_as_compo
         write_to_log(file_name, msg)
         assert False, row
 
-    return nodes, Elements, domains, opt_domains, en_all, plane_strain, plane_stress, axisymmetry
+    return nodes, Elements, domains, opt_domains, plane_strain, plane_stress, axisymmetry
 
 
 # function for computing volumes or area (shell elements) and centres of gravity

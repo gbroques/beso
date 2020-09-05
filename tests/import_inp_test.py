@@ -18,7 +18,6 @@ class ImportImpTest(unittest.TestCase):
             Elements,
             domains,
             opt_domains,
-            en_all,
             plane_strain,
             plane_stress,
             axisymmetry
@@ -55,10 +54,6 @@ class ImportImpTest(unittest.TestCase):
         self.assertEqual(len(opt_domains), 1080)
         self.assertEqual(list(Elements.quad4.keys()),
                          opt_domains)
-
-        self.assertEqual(len(en_all), 1080)
-        self.assertEqual(list(Elements.quad4.keys()),
-                         en_all)
 
         self.assertEqual(plane_strain, set())
         self.assertEqual(plane_stress, set())
