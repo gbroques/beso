@@ -201,6 +201,8 @@ def import_inp(filename, domains_from_config, domain_optimized, shells_as_compos
                     break
 
         # reading domains from elset
+        # *ELSET documentation:
+        #   http://web.mit.edu/calculix_v2.7/CalculiX/ccx_2.7/doc/ccx/node198.html
         elif line[:6].upper() == "*ELSET":
             line_split_comma = line.split(",")
             if "=" in line_split_comma[1]:

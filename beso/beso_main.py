@@ -145,13 +145,18 @@ file_name = os.path.join(path, file_name)
 logging.info(msg)
 
 # mesh and domains importing
+# plane_strain, plane_stress, axisymmetry "special type" sets are only used when writing the inp in each iteration
+# opt_domains is short for "optimized domains"
 [nodes, Elements, domains, opt_domains, plane_strain, plane_stress, axisymmetry] = import_inp(
     file_name, domains_from_config, domain_optimized, shells_as_composite)
 domain_shells = {}
 domain_volumes = {}
 for dn in domains_from_config:  # distinguishing shell elements and volume elements
+    # Shell elements are surface elements, they have no thickness
     domain_shells[dn] = set(domains[dn]).intersection(list(Elements.tria3.keys()) + list(Elements.tria6.keys()) +
                                                       list(Elements.quad4.keys()) + list(Elements.quad8.keys()))
+    # Volume elements are three-dimensional and have a volume.
+    # Volume elements are also called solids, bricks or tets. The last is short for tetrahedrons.
     domain_volumes[dn] = set(domains[dn]).intersection(list(Elements.tetra4.keys()) + list(Elements.tetra10.keys()) +
                                                        list(Elements.hexa8.keys()) + list(Elements.hexa20.keys()) +
                                                        list(Elements.penta6.keys()) + list(Elements.penta15.keys()))
@@ -162,7 +167,8 @@ if isinstance(continue_from, int):
     for dn in domains_from_config:
         if (len(domain_density[dn]) - 1) < continue_from:
             sn = len(domain_density[dn]) - 1
-            msg = "\nINFO: elements from the domain " + dn + " were set to the highest state.\n"
+            msg = "\nINFO: elements from the domain " + \
+                dn + " were set to the highest state.\n"
             logging.info(msg)
             print(msg)
         else:
@@ -170,38 +176,47 @@ if isinstance(continue_from, int):
         for en in domains[dn]:
             elm_states[en] = sn
 elif continue_from[-4:] == ".frd":
-    elm_states = beso_lib.import_frd_state(continue_from, elm_states, number_of_states, file_name)
+    elm_states = beso_lib.import_frd_state(
+        continue_from, elm_states, number_of_states, file_name)
 elif continue_from[-4:] == ".inp":
-    elm_states = beso_lib.import_inp_state(continue_from, elm_states, number_of_states, file_name)
+    elm_states = beso_lib.import_inp_state(
+        continue_from, elm_states, number_of_states, file_name)
 elif continue_from[-4:] == ".csv":
-    elm_states = beso_lib.import_csv_state(continue_from, elm_states, file_name)
+    elm_states = beso_lib.import_csv_state(
+        continue_from, elm_states, file_name)
 else:
     for dn in domains_from_config:
         for en in domains[dn]:
-            elm_states[en] = len(domain_density[dn]) - 1  # set to highest state
+            elm_states[en] = len(domain_density[dn]) - \
+                1  # set to highest state
 
 # computing volume or area, and centre of gravity of each element
-[cg, cg_min, cg_max, volume_elm, area_elm] = beso_lib.elm_volume_cg(file_name, nodes, Elements)
+[cg, cg_min, cg_max, volume_elm, area_elm] = beso_lib.elm_volume_cg(
+    file_name, nodes, Elements)
 mass = [0.0]
 mass_full = 0  # sum from initial states TODO make it independent on starting elm_states?
 
 for dn in domains_from_config:
     if domain_optimized[dn] is True:
         for en in domain_shells[dn]:
-            mass[0] += domain_density[dn][elm_states[en]] * area_elm[en] * domain_thickness[dn][elm_states[en]]
+            mass[0] += domain_density[dn][elm_states[en]] * \
+                area_elm[en] * domain_thickness[dn][elm_states[en]]
             mass_full += domain_density[dn][len(domain_density[dn]) - 1] * area_elm[en] * domain_thickness[dn][
-                                                                                            len(domain_density[dn]) - 1]
+                len(domain_density[dn]) - 1]
         for en in domain_volumes[dn]:
             mass[0] += domain_density[dn][elm_states[en]] * volume_elm[en]
-            mass_full += domain_density[dn][len(domain_density[dn]) - 1] * volume_elm[en]
+            mass_full += domain_density[dn][len(
+                domain_density[dn]) - 1] * volume_elm[en]
 print("initial optimization domains mass {}" .format(mass[0]))
 
 if iterations_limit == "auto":  # automatic setting
     m = mass[0] / mass_full
     if ratio_type == "absolute" and (mass_removal_ratio - mass_addition_ratio > 0):
-        iterations_limit = int((m - mass_goal_ratio) / (mass_removal_ratio - mass_addition_ratio) + 25)
+        iterations_limit = int((m - mass_goal_ratio) /
+                               (mass_removal_ratio - mass_addition_ratio) + 25)
     elif ratio_type == "absolute" and (mass_removal_ratio - mass_addition_ratio < 0):
-        iterations_limit = int((mass_goal_ratio - m) / (mass_addition_ratio - mass_removal_ratio) + 25)
+        iterations_limit = int((mass_goal_ratio - m) /
+                               (mass_addition_ratio - mass_removal_ratio) + 25)
     elif ratio_type == "relative":
         it = 0
         if mass_removal_ratio - mass_addition_ratio > 0:
@@ -235,37 +250,45 @@ for ft in filter_list:
         if ft[0] == "casting":
             if len(ft) == 3:
                 domains_to_filter = list(opt_domains)
-                beso_filters.check_same_state(domain_same_state, domains_from_config, file_name)
+                beso_filters.check_same_state(
+                    domain_same_state, domains_from_config, file_name)
             else:
                 domains_to_filter = []
                 filtered_dn = []
                 for dn in ft[3:]:
                     domains_to_filter += domains[dn]
                     filtered_dn.append(dn)
-                beso_filters.check_same_state(domain_same_state, filtered_dn, file_name)
+                beso_filters.check_same_state(
+                    domain_same_state, filtered_dn, file_name)
             casting_vector = ft[2]
             [above_elm, below_elm] = beso_filters.prepare2s_casting(cg, f_range, domains_to_filter,
                                                                     above_elm, below_elm, casting_vector)
             continue  # to evaluate other filters
         if len(ft) == 2:
             domains_to_filter = list(opt_domains)
-            beso_filters.check_same_state(domain_same_state, domains_from_config, file_name)
+            beso_filters.check_same_state(
+                domain_same_state, domains_from_config, file_name)
         else:
             domains_to_filter = []
             filtered_dn = []
             for dn in ft[3:]:
                 domains_to_filter += domains[dn]
                 filtered_dn.append(dn)
-            beso_filters.check_same_state(domain_same_state, filtered_dn, file_name)
+            beso_filters.check_same_state(
+                domain_same_state, filtered_dn, file_name)
         if ft[0] == "over points":
-            beso_filters.check_same_state(domain_same_state, domains_from_config, file_name)
-            [w_f3, n_e3, n_p] = beso_filters.prepare3_tetra_grid(file_name, cg, f_range, domains_to_filter)
+            beso_filters.check_same_state(
+                domain_same_state, domains_from_config, file_name)
+            [w_f3, n_e3, n_p] = beso_filters.prepare3_tetra_grid(
+                file_name, cg, f_range, domains_to_filter)
             weight_factor3.append(w_f3)
             near_elm3.append(n_e3)
             near_points.append(n_p)
-        elif  ft[0] == "over nodes":
-            beso_filters.check_same_state(domain_same_state, domains_from_config, file_name)
-            [w_f_n, M_, w_f_d, n_n] = beso_filters.prepare1s(nodes, Elements, cg, f_range, domains_to_filter)
+        elif ft[0] == "over nodes":
+            beso_filters.check_same_state(
+                domain_same_state, domains_from_config, file_name)
+            [w_f_n, M_, w_f_d, n_n] = beso_filters.prepare1s(
+                nodes, Elements, cg, f_range, domains_to_filter)
             weight_factor_node.append(w_f_n)
             M.append(M_)
             weight_factor_distance.append(w_f_d)
@@ -274,7 +297,8 @@ for ft in filter_list:
             [weight_factor2, near_elm] = beso_filters.prepare2s(cg, cg_min, cg_max, f_range, domains_to_filter,
                                                                 weight_factor2, near_elm)
         elif ft[0].split()[0] in ["erode", "dilate", "open", "close", "open-close", "close-open", "combine"]:
-            near_elm = beso_filters.prepare_morphology(cg, cg_min, cg_max, f_range, domains_to_filter, near_elm)
+            near_elm = beso_filters.prepare_morphology(
+                cg, cg_min, cg_max, f_range, domains_to_filter, near_elm)
 
 # separating elements for reading nodal input
 if reference_points == "nodes":
@@ -317,7 +341,8 @@ logging.info(msg)
 
 # preparing for writing quick results
 file_name_resulting_states = os.path.join(path, "resulting_states")
-[en_all_vtk, associated_nodes] = beso_lib.vtk_mesh(file_name_resulting_states, nodes, Elements)
+[en_all_vtk, associated_nodes] = beso_lib.vtk_mesh(
+    file_name_resulting_states, nodes, Elements)
 
 # ITERATION CYCLE
 sensitivity_number = {}
@@ -349,9 +374,11 @@ while True:
                        domain_FI_filled)
     # running CalculiX analysis
     if sys.platform == 'linux':
-        subprocess.call([os.path.normpath(path_calculix), file_nameW], cwd=path)
+        subprocess.call(
+            [os.path.normpath(path_calculix), file_nameW], cwd=path)
     else:
-        subprocess.call([os.path.normpath(path_calculix), file_nameW], cwd=path, shell=True)
+        subprocess.call([os.path.normpath(path_calculix),
+                         file_nameW], cwd=path, shell=True)
 
     # reading results and computing failure indeces
     if (reference_points == "integration points") or (optimization_base == "stiffness") or \
@@ -362,7 +389,8 @@ while True:
     if reference_points == "nodes":  # from .frd file
         FI_step = beso_lib.import_FI_node(reference_value, file_nameW, domains, criteria, domain_FI, file_name,
                                           elm_states, steps_superposition)
-        disp_i = beso_lib.import_displacement(file_nameW, displacement_graph, steps_superposition)
+        disp_i = beso_lib.import_displacement(
+            file_nameW, displacement_graph, steps_superposition)
     disp_max.append(disp_i)
 
     # check if results were found
@@ -387,7 +415,8 @@ while True:
             for en in domains[dn]:
                 for sn in range(len(FI_step)):
                     try:
-                        FI_step_en = list(filter(lambda a: a is not None, FI_step[sn][en]))  # drop None FI
+                        FI_step_en = list(
+                            filter(lambda a: a is not None, FI_step[sn][en]))  # drop None FI
                         FI_max[i][dn] = max(FI_max[i][dn], max(FI_step_en))
                     except ValueError:
                         msg = "FI_max computing failed. Check if each domain contains at least one failure criterion."
@@ -402,7 +431,8 @@ while True:
 
     # handling with more steps
     FI_step_max = {}  # maximal FI over all steps for each element in this iteration
-    energy_density_enlist = {}   # {en1: [energy from sn1, energy from sn2, ...], en2: [], ...}
+    # {en1: [energy from sn1, energy from sn2, ...], en2: [], ...}
+    energy_density_enlist = {}
     FI_violated.append([])
     dno = 0
     for dn in domains_from_config:
@@ -413,24 +443,29 @@ while True:
                 energy_density_enlist[en] = []
             for sn in range(len(FI_step)):
                 if domain_FI_filled:
-                    FI_step_en = list(filter(lambda a: a is not None, FI_step[sn][en]))  # drop None FI
+                    FI_step_en = list(
+                        filter(lambda a: a is not None, FI_step[sn][en]))  # drop None FI
                     FI_step_max[en] = max(FI_step_max[en], max(FI_step_en))
                 if optimization_base == "stiffness":
-                    energy_density_enlist[en].append(energy_density_step[sn][en])
+                    energy_density_enlist[en].append(
+                        energy_density_step[sn][en])
             if optimization_base == "stiffness":
                 sensitivity_number[en] = max(energy_density_enlist[en])
             elif optimization_base == "heat":
                 try:
                     sensitivity_number[en] = heat_flux[en] / volume_elm[en]
                 except KeyError:
-                    sensitivity_number[en] = heat_flux[en] / (area_elm[en] * domain_thickness[dn][elm_states[en]])
+                    sensitivity_number[en] = heat_flux[en] / \
+                        (area_elm[en] * domain_thickness[dn][elm_states[en]])
             elif optimization_base == "failure_index":
-                sensitivity_number[en] = FI_step_max[en] / domain_density[dn][elm_states[en]]
+                sensitivity_number[en] = FI_step_max[en] / \
+                    domain_density[dn][elm_states[en]]
             if domain_FI_filled:
                 if FI_step_max[en] >= 1:
                     FI_violated[i][dno] += 1
         if domain_FI_filled:
-            print(str(FI_max[i][dn]).rjust(15) + " " + str(FI_violated[i][dno]).rjust(4) + "   " + dn)
+            print(str(FI_max[i][dn]).rjust(15) + " " +
+                  str(FI_violated[i][dno]).rjust(4) + "   " + dn)
         dno += 1
 
     # buckling sensitivities
@@ -439,7 +474,8 @@ while True:
         #energy_density_eigen[eigen_number][en_last] = np.average(ener_int_pt)
         denominator = []  # normalization denominator for each buckling factor with numbering from 0
         for eigen_number in energy_density_eigen:  # numbering from 1
-            denominator.append(max(energy_density_eigen[eigen_number].values()))
+            denominator.append(
+                max(energy_density_eigen[eigen_number].values()))
         bf_dif = {}
         bf_coef = {}
         buckling_influence_tolerance = 0.2  # Ki - K1 tolerance to influence sensitivity
@@ -450,9 +486,11 @@ while True:
                 bf_coef[bfn] = bf_dif_i / buckling_influence_tolerance
         for dn in domains_from_config:
             for en in domains[dn]:
-                sensitivity_number[en] = energy_density_eigen[1][en] / denominator[0]
+                sensitivity_number[en] = energy_density_eigen[1][en] / \
+                    denominator[0]
                 for bfn in bf_dif:
-                    sensitivity_number[en] += energy_density_eigen[bfn + 1][en] / denominator[bfn] * bf_coef[bfn]
+                    sensitivity_number[en] += energy_density_eigen[bfn +
+                                                                   1][en] / denominator[bfn] * bf_coef[bfn]
 
     # filtering sensitivity number
     kp = 0
@@ -496,8 +534,10 @@ while True:
         for en in opt_domains:
             # averaging with the last iteration should stabilize iterations
             if i > 0:
-                sensitivity_number[en] = (sensitivity_number[en] + sensitivity_number_old[en]) / 2.0
-            sensitivity_number_old[en] = sensitivity_number[en]  # for averaging in the next step
+                sensitivity_number[en] = (
+                    sensitivity_number[en] + sensitivity_number_old[en]) / 2.0
+            # for averaging in the next step
+            sensitivity_number_old[en] = sensitivity_number[en]
 
     # computing mean stress from maximums of each element in all steps in the optimization domain
     if domain_FI_filled:
@@ -511,14 +551,16 @@ while True:
     for dn in domain_optimized:
         if domain_optimized[dn] is True:
             for en in domain_shells[dn]:
-                mass_elm = domain_density[dn][elm_states[en]] * area_elm[en] * domain_thickness[dn][elm_states[en]]
+                mass_elm = domain_density[dn][elm_states[en]] * \
+                    area_elm[en] * domain_thickness[dn][elm_states[en]]
                 if domain_FI_filled:
                     FI_mean_sum += FI_step_max[en] * mass_elm
                     if elm_states[en] != 0:
                         FI_mean_sum_without_state0 += FI_step_max[en] * mass_elm
                         mass_without_state0 += mass_elm
                 if optimization_base == "stiffness":
-                    energy_density_mean_sum += max(energy_density_enlist[en]) * mass_elm
+                    energy_density_mean_sum += max(
+                        energy_density_enlist[en]) * mass_elm
                 if optimization_base == "heat":
                     heat_flux_mean_sum += heat_flux[en] * mass_elm
             for en in domain_volumes[dn]:
@@ -529,15 +571,18 @@ while True:
                         FI_mean_sum_without_state0 += FI_step_max[en] * mass_elm
                         mass_without_state0 += mass_elm
                 if optimization_base == "stiffness":
-                    energy_density_mean_sum += max(energy_density_enlist[en]) * mass_elm
+                    energy_density_mean_sum += max(
+                        energy_density_enlist[en]) * mass_elm
                 if optimization_base == "heat":
                     heat_flux_mean_sum += heat_flux[en] * mass_elm
     if domain_FI_filled:
         FI_mean.append(FI_mean_sum / mass[i])
         print("FI_mean                = {}".format(FI_mean[i]))
         if mass_without_state0:
-            FI_mean_without_state0.append(FI_mean_sum_without_state0 / mass_without_state0)
-            print("FI_mean_without_state0 = {}".format(FI_mean_without_state0[i]))
+            FI_mean_without_state0.append(
+                FI_mean_sum_without_state0 / mass_without_state0)
+            print("FI_mean_without_state0 = {}".format(
+                FI_mean_without_state0[i]))
         else:
             FI_mean_without_state0.append("NaN")
     if optimization_base == "stiffness":
@@ -564,7 +609,8 @@ while True:
             msg += " " + str(FI_violated[i][dno + 1]).rjust(4, " ")
         if len(domains_from_config) > 1:
             msg += " " + str(sum(FI_violated[i])).rjust(4, " ")
-        msg += " " + str(FI_mean[i]).rjust(17, " ") + " " + str(FI_mean_without_state0[i]).rjust(18, " ")
+        msg += " " + str(FI_mean[i]).rjust(17, " ") + " " + \
+            str(FI_mean_without_state0[i]).rjust(18, " ")
         FI_max_all = 0
         for dn in domains_from_config:
             msg += " " + str(FI_max[i][dn]).rjust(17, " ")
@@ -592,10 +638,12 @@ while True:
     if len(FI_mean) > 5:
         difference_last = []
         for last in range(1, 6):
-            difference_last.append(abs(FI_mean[i] - FI_mean[i-last]) / FI_mean[i])
+            difference_last.append(
+                abs(FI_mean[i] - FI_mean[i-last]) / FI_mean[i])
         difference = max(difference_last)
         if check_tolerance is True:
-            print("maximum relative difference in FI_mean for the last 5 iterations = {}" .format(difference))
+            print("maximum relative difference in FI_mean for the last 5 iterations = {}" .format(
+                difference))
         if difference < tolerance:
             continue_iterations = False
         elif FI_mean[i] == FI_mean[i-1] == FI_mean[i-2]:
@@ -605,15 +653,18 @@ while True:
     if len(energy_density_mean) > 5:
         difference_last = []
         for last in range(1, 6):
-            difference_last.append(abs(energy_density_mean[i] - energy_density_mean[i - last]) / energy_density_mean[i])
+            difference_last.append(abs(
+                energy_density_mean[i] - energy_density_mean[i - last]) / energy_density_mean[i])
         difference = max(difference_last)
         if check_tolerance is True:
-            print("maximum relative difference in energy_density_mean for the last 5 iterations = {}".format(difference))
+            print("maximum relative difference in energy_density_mean for the last 5 iterations = {}".format(
+                difference))
         if difference < tolerance:
             continue_iterations = False
         elif energy_density_mean[i] == energy_density_mean[i - 1] == energy_density_mean[i - 2]:
             continue_iterations = False
-            print("energy_density_mean[i] == energy_density_mean[i-1] == energy_density_mean[i-2]")
+            print(
+                "energy_density_mean[i] == energy_density_mean[i-1] == energy_density_mean[i-2]")
 
     # finish or start new iteration
     if continue_iterations is False or i >= iterations_limit:
@@ -632,7 +683,8 @@ while True:
     if mass_removal_ratio - mass_addition_ratio > 0:  # removing from initial mass
         if sum(FI_violated[i - 1]) > sum(FI_violated[0]) + FI_violated_tolerance:
             if mass[i - 1] >= mass_goal_ratio * mass_full:
-                mass_goal_i = mass[i - 1]  # use mass_new from previous iteration
+                # use mass_new from previous iteration
+                mass_goal_i = mass[i - 1]
             else:  # not to drop below goal mass
                 mass_goal_i = mass_goal_ratio * mass_full
             if i_violated == 0:
@@ -651,7 +703,8 @@ while True:
             mass_goal_i = mass_goal_ratio * mass_full
     else:  # adding to initial mass  TODO include stress limit
         if mass[i - 1] < mass_goal_ratio * mass_full:
-            mass_goal_i = mass[i - 1] + (mass_addition_ratio - mass_removal_ratio) * mass_full
+            mass_goal_i = mass[i - 1] + \
+                (mass_addition_ratio - mass_removal_ratio) * mass_full
         elif mass[i - 1] >= mass_goal_ratio * mass_full:
             if not i_violated:
                 i_violated = i  # to start decaying
@@ -694,7 +747,7 @@ while True:
                                 if elm_states[en] != elm_states_filtered[en]:
                                     mass[i] += area_elm[en] * (
                                         domain_density[dn][elm_states_filtered[en]] * domain_thickness[dn][
-                                                                                                elm_states_filtered[en]]
+                                            elm_states_filtered[en]]
                                         - domain_density[dn][elm_states[en]] * domain_thickness[dn][elm_states[en]])
                                     elm_states[en] = elm_states_filtered[en]
                             for en in domain_volumes[dn]:
@@ -706,18 +759,22 @@ while True:
     mass_excess = mass[i] - mass_not_filtered
 
     # export the present mesh
-    beso_lib.append_vtk_states(file_name_resulting_states, i, en_all_vtk, elm_states)
+    beso_lib.append_vtk_states(
+        file_name_resulting_states, i, en_all_vtk, elm_states)
 
     file_nameW2 = os.path.join(path, "file" + str(i).zfill(3))
     if save_iteration_results and np.mod(float(i), save_iteration_results) == 0:
         if "frd" in save_resulting_format:
-            beso_lib.export_frd(file_nameW2, nodes, Elements, elm_states, number_of_states)
+            beso_lib.export_frd(file_nameW2, nodes, Elements,
+                                elm_states, number_of_states)
         if "inp" in save_resulting_format:
-            beso_lib.export_inp(file_nameW2, nodes, Elements, elm_states, number_of_states)
+            beso_lib.export_inp(file_nameW2, nodes, Elements,
+                                elm_states, number_of_states)
 
     # check for oscillation state
     if elm_states_before_last == elm_states:  # oscillating state
-        msg = "\nOSCILLATION: model turns back to " + str(i - 2) + "th iteration.\n"
+        msg = "\nOSCILLATION: model turns back to " + \
+            str(i - 2) + "th iteration.\n"
         logging.info(msg)
         print(msg)
         oscillations = True
@@ -747,9 +804,11 @@ while True:
 # export the resulting mesh
 if not (save_iteration_results and np.mod(float(i), save_iteration_results) == 0):
     if "frd" in save_resulting_format:
-        beso_lib.export_frd(file_nameW, nodes, Elements, elm_states, number_of_states)
+        beso_lib.export_frd(file_nameW, nodes, Elements,
+                            elm_states, number_of_states)
     if "inp" in save_resulting_format:
-        beso_lib.export_inp(file_nameW, nodes, Elements, elm_states, number_of_states)
+        beso_lib.export_inp(file_nameW, nodes, Elements,
+                            elm_states, number_of_states)
 
 # removing solver files
 if "inp" not in save_solver_files:
@@ -772,10 +831,12 @@ total_time_min = int((total_time % 3600) / 60.0)
 total_time_s = int(round(total_time % 60))
 msg = "\n"
 msg += ("Finished at  " + time.ctime() + "\n")
-msg += ("Total time   " + str(total_time_h) + " h " + str(total_time_min) + " min " + str(total_time_s) + " s\n")
+msg += ("Total time   " + str(total_time_h) + " h " +
+        str(total_time_min) + " min " + str(total_time_s) + " s\n")
 msg += "\n"
 logging.info(msg)
-print("total time: " + str(total_time_h) + " h " + str(total_time_min) + " min " + str(total_time_s) + " s")
+print("total time: " + str(total_time_h) + " h " +
+      str(total_time_min) + " min " + str(total_time_s) + " s")
 
 fn = 0  # figure number
 # plot mass
@@ -876,7 +937,8 @@ if displacement_graph:
         disp_max_cn = []
         for ii in range(i + 1):
             disp_max_cn.append(disp_max[ii][cn])
-        plt.plot(range(i + 1), disp_max_cn, label=displacement_graph[cn][0] + "(" + displacement_graph[cn][1] + ")")
+        plt.plot(range(i + 1), disp_max_cn,
+                 label=displacement_graph[cn][0] + "(" + displacement_graph[cn][1] + ")")
     plt.legend(loc=2, fontsize=10)
     plt.title("Node set maximal displacements")
     plt.xlabel("Iteration")
@@ -892,7 +954,8 @@ if optimization_base == "buckling":
         buckling_factors_bfn = []
         for ii in range(i + 1):
             buckling_factors_bfn.append(buckling_factors_all[ii][bfn])
-        plt.plot(range(i + 1), buckling_factors_bfn, label="mode " + str(bfn + 1))
+        plt.plot(range(i + 1), buckling_factors_bfn,
+                 label="mode " + str(bfn + 1))
     plt.legend(loc=2, fontsize=10)
     plt.title("Buckling factors")
     plt.xlabel("Iteration")
