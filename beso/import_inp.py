@@ -264,6 +264,13 @@ def import_inp(filename, domains_from_config, domain_optimized, shells_as_compos
             raise Exception(msg)
         if domain_optimized[dn] is True:
             opt_domains.extend(domains[dn])
+
+    if not opt_domains:
+        row = "None optimized domain has been found. Check your inputs."
+        msg = ("\nERROR: " + row + "\n")
+        logging.error(msg)
+        assert False, row
+
     msg = ("\ndomains: %.f\n" % len(domains_from_config))
 
     # only elements in domains_from_config are stored, the rest is discarded
@@ -296,11 +303,5 @@ def import_inp(filename, domains_from_config, domain_optimized, shells_as_compos
                len(Elements.penta6), len(Elements.penta15)))
     print(msg)
     logging.info(msg)
-
-    if not opt_domains:
-        row = "None optimized domain has been found. Check your inputs."
-        msg = ("\nERROR: " + row + "\n")
-        logging.error(msg)
-        assert False, row
 
     return nodes, Elements, domains, opt_domains, plane_strain, plane_stress, axisymmetry
