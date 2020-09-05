@@ -6,11 +6,11 @@ path = "."  # path to the working directory (without whitespaces) where the init
 #path = "."  # example - in the current working directory
 #path = "~/tmp/beso/"  # Linux example
 #path = "D:\\tmp\\"  # Windows example
-path_calculix = "d:\\soft\\FreeCad\\FreeCAD_0.17.10993_x64_dev_win\\bin\\ccx"  # path to the CalculiX solver
+path_calculix = "/usr/bin/ccx"  # path to the CalculiX solver
 #path_calculix = "/usr/bin/ccx"  # Linux example, may help shell command: which ccx
 #path_calculix = "d:\\soft\FreeCad\\FreeCAD_0.17.8264_x64_dev_win\\bin\\ccx"  # Windows example
 
-file_name = "Plane_Mesh.inp"  # file with prepared linear static analysis
+file_name = "FEMMeshGmsh.inp"  # file with prepared linear static analysis
 
 elset_name = "SolidMaterialElementGeometry2D"  # string with name of the element set in .inp file (CASE sensitive!)
 domain_optimized[elset_name] = True  # True - optimized domain, False - elements will not be removed
@@ -65,11 +65,11 @@ filter_list = [["simple", 2]]  # [[filter type, range, domains or nothing for al
 
 # ADVANCED INPUTS:
 
-optimization_base = "stiffness"  # "stiffness" - maximization of stiffness (minimization of compliance)
-                                 # "failure_index" sensitivity number is given by FI/density
-                                 # "buckling" - maximization of the lowest buckling factor, more modes are taken linearly into account if factor difference is under 0.2
-                                 # "heat" - maximize heat flow through the structure
-                                 # inp file for heat and buckling analysis should contain only one heat or buckling step
+optimization_base = "failure_index"  # "stiffness" - maximization of stiffness (minimization of compliance)
+                                     # "failure_index" sensitivity number is given by FI/density
+                                     # "buckling" - maximization of the lowest buckling factor, more modes are taken linearly into account if factor difference is under 0.2
+                                     # "heat" - maximize heat flow through the structure
+                                     # inp file for heat and buckling analysis should contain only one heat or buckling step
 
 cpu_cores = 0  # 0 - use all processor cores, N - will use N number of processor cores
 
@@ -87,7 +87,7 @@ reference_value = "max"  # "max" - maximal value on element,
                         # "average" - average value on element (not convenient for bended shell elements when optimization_base = "failure_index")
 sensitivity_averaging = False  # True - averaging sensitivity numbers with previous iteration, False - do not average
 
-mass_addition_ratio = 0.015  # mass to be added in each iteration
+mass_addition_ratio = 0.01  # mass to be added in each iteration
 mass_removal_ratio = 0.03  # mass to be removed in each iteration
 ratio_type = "relative"  # "relative" - ratios of actual mass, "absolute" - ratios of maximal mass
 compensate_state_filter = True  # True - if state filter changes iteration mass, next iteration will compensate it
@@ -107,7 +107,7 @@ displacement_graph = []  # plot maximal displacement of the given node set, e.g.
                          # [] - do not plot it
                          # [["nset1", "ux"], ["nset2", "uy"]] - plot maximal x displacement of node set nset1 and maximal y displacement of node set nset2
                          # [["nset1", "total"]] - plot maximal total displacement of node set nset1, same as [["nset", "sqrt(ux**2 + uy**2 + uz**2)"]]
-save_iteration_results = 1  # every i-th iteration save temporary results, 0 - save only final results
+save_iteration_results = 10  # every i-th iteration save temporary results, 0 - save only final results
 save_solver_files = ""  # not removed outputs from the solver, e.g. "inp frd dat cvg sta" will preserve all outputs in iterations defined by save_iteration_results
 save_resulting_format = "inp vtk" # "frd" or "inp" format of resulting meshes (each state separately in own mesh file)
                                   # "vtk" output for viewing in Paraview (renumbered mesh, states, sensitivity numbers, failure indices)
