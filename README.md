@@ -8,15 +8,15 @@ A fork of [fandaL/beso](https://github.com/fandaL/beso) designed to be simpler.
 1. Install [Miniconda](https://docs.conda.io/en/latest/miniconda.html).
 2. Create a dedicated `beso` conda environment:
 
-    conda env create -f environment.yml
+       conda env create -f environment.yml
 
 3. You can activate the newly created `beso` conda environment with:
 
-    conda activate beso
+       conda activate beso
 
 4. and decactivate it with:
 
-    conda deactivate beso
+       conda deactivate beso
 
 ## Unit Tests
 Unit tests are included in the `tests/` directory and can be executed with the following command:
