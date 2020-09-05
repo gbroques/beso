@@ -1,4 +1,6 @@
 # beso simple
+[![Build Status](https://travis-ci.org/gbroques/beso-simple.svg?branch=master)](https://travis-ci.org/gbroques/beso-simple)
+
 * [Introduction](#introduction)
 * [How to Run](#how-to-run)
 * [Unit Tests](#unit-tests)
