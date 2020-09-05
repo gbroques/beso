@@ -248,6 +248,8 @@ def import_inp(filename, domains_from_config, domain_optimized, shells_as_compos
         elif line[:5].upper() == "*STEP":
             model_definition = False
     f.close()
+    # --- FILE CLOSE --- #
+    # TODO: That should probably be the end of the "reader" code.
 
     for dn in domains:
         domains[dn] = list(domains[dn])
@@ -285,10 +287,6 @@ def import_inp(filename, domains_from_config, domain_optimized, shells_as_compos
     Elements.penta6 = {k: all_penta6[k] for k in keys}
     keys = set(en_all).intersection(set(all_penta15.keys()))
     Elements.penta15 = {k: all_penta15[k] for k in keys}
-    en_all = list(Elements.tria3.keys()) + list(Elements.tria6.keys()) + list(Elements.quad4.keys()) + \
-        list(Elements.quad8.keys()) + list(Elements.tetra4.keys()) + list(Elements.tetra10.keys()) + \
-        list(Elements.hexa8.keys()) + list(Elements.hexa20.keys()) + list(Elements.penta6.keys()) + \
-        list(Elements.penta15.keys())
 
     msg += ("nodes  : %.f\nTRIA3  : %.f\nTRIA6  : %.f\nQUAD4  : %.f\nQUAD8  : %.f\nTETRA4 : %.f\nTETRA10: %.f\n"
             "HEXA8  : %.f\nHEXA20 : %.f\nPENTA6 : %.f\nPENTA15: %.f\n"
