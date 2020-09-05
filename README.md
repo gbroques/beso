@@ -1,5 +1,6 @@
 # beso simple
 [![Build Status](https://travis-ci.org/gbroques/beso-simple.svg?branch=master)](https://travis-ci.org/gbroques/beso-simple)
+[![Coverage Status](https://coveralls.io/repos/github/gbroques/beso-simple/badge.svg?branch=master)](https://coveralls.io/github/gbroques/beso-simple?branch=master)
 
 * [Introduction](#introduction)
 * [How to Run](#how-to-run)
