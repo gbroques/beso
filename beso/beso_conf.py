@@ -21,7 +21,7 @@ domain_orientation[elset_name] = []  # orientations for each state referring to 
                                      # e.g. for 2 states ["or1", "or1"], for isotropic material use empty list []
 domain_FI[elset_name] = [[("stress_von_Mises", 450.0e6)],  # inner tuples () for separate Failure indices
                          [("stress_von_Mises", 450.0)]]  # new inner list [] for the next state of switch_elm
-                        # Filure Indices definition in python tuples (separeate FI for each element state if there are more lists)
+                        # Failure Indices definition in python tuples (separeate FI for each element state if there are more lists)
                         # Failure Indice FI = element stress / allowable value
                         # Failure Indices are not evaluated if they are not defined here, i.e. domain_FI[elset_name] = [], and then optimization_base must not be "failure_index"
                         # examples:
