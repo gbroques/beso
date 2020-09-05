@@ -287,6 +287,16 @@ def run1(file_name, sensitivity_number, weight_factor_node, M, weight_factor_dis
 
 # function preparing values for filtering element rho to suppress checkerboard
 # uses sectoring to prevent computing distance of far points
+# See the following paper for more information:
+# Convergent and mesh-independent solutions for the bi-directional evolutionary structural optimization method
+# 2.3. Filter scheme
+# The defined filter functions are based on a length
+# scale r_min that does not change with mesh refinement. The primary role of the scale parameter rmin in the filter scheme is to
+# identify the nodes that influence the sensitivity of the ith element. This can be visualized by drawing a circle of radius rmin
+# centred at the centroid of the ith element
+# r_min should be larger than half of
+# the size of one element. It is recommended that r_min is selected
+# to be about 1–3 times of the size of one element.
 def prepare2s(cg, cg_min, cg_max, r_min, opt_domains, weight_factor2, near_elm):
     sector_elm = {}
     # preparing empty sectors
