@@ -1,4 +1,8 @@
 # Filters to prevent "checkerboard" effect, to fit different tasks
+# From the following paper:
+#   A simple checkerboard suppression algorithm for evolutionary structural optimization
+# "Checkerboard patterns refer to the phenomena of alternating presence of solid and void elements ordered in a checkerboard like fashion
+#  Such shapes and topologies with checkerboard patterns may be unacceptable in practice."
 import numpy as np
 import beso.beso_lib as beso_lib
 import logging
