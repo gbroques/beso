@@ -1,8 +1,9 @@
-from beso_lib import write_to_log
+from .beso_lib import write_to_log
 
 
-def import_inp(file_name, domains_from_config, domain_optimized, shells_as_composite):
+def import_inp(filename, domains_from_config, domain_optimized, shells_as_composite):
     """function importing a mesh consisting of nodes, volume and shell elements"""
+    print('filename', filename)
     nodes = {}  # dict with nodes position
 
     class Elements():
@@ -41,11 +42,11 @@ def import_inp(file_name, domains_from_config, domain_optimized, shells_as_compo
     axisymmetry = set()
 
     try:
-        f = open(file_name, "r")
+        f = open(filename, "r")
     except IOError:
-        msg = ("CalculiX input file " + file_name +
+        msg = ("CalculiX input file " + filename +
                " not found. Check your inputs.")
-        write_to_log(file_name, "\nERROR: " + msg + "\n")
+        write_to_log(filename, "\nERROR: " + msg + "\n")
         raise Exception(msg)
     line = "\n"
     include = ""
@@ -137,7 +138,7 @@ def import_inp(file_name, domains_from_config, domain_optimized, shells_as_compo
                     msg = ("\nERROR: " + elm_type + "element type found. CalculiX might need S6 or S8R elements for "
                            "composite\n")
                     print(msg)
-                    write_to_log(file_name, msg)
+                    write_to_log(filename, msg)
 
         elif elm_category != []:
             line_list = line.split(',')
@@ -220,7 +221,7 @@ def import_inp(file_name, domains_from_config, domain_optimized, shells_as_compo
             en_all.extend(domains[dn])
         except KeyError:
             msg = "Element set '{}' not found in the inp file.".format(dn)
-            write_to_log(file_name, "\nERROR: " + msg + "\n")
+            write_to_log(filename, "\nERROR: " + msg + "\n")
             raise Exception(msg)
         if domain_optimized[dn] is True:
             opt_domains.extend(domains[dn])
@@ -259,12 +260,12 @@ def import_inp(file_name, domains_from_config, domain_optimized, shells_as_compo
                 Elements.hexa8), len(Elements.hexa20),
                len(Elements.penta6), len(Elements.penta15)))
     print(msg)
-    write_to_log(file_name, msg)
+    write_to_log(filename, msg)
 
     if not opt_domains:
         row = "None optimized domain has been found. Check your inputs."
         msg = ("\nERROR: " + row + "\n")
-        write_to_log(file_name, msg)
+        write_to_log(filename, msg)
         assert False, row
 
     return nodes, Elements, domains, opt_domains, plane_strain, plane_stress, axisymmetry

@@ -8,10 +8,11 @@ import os
 import subprocess
 import sys
 import time
-import beso_lib
-import beso_filters
-import beso_separate
-from import_inp import import_inp
+import beso.beso_lib as beso_lib
+import beso.beso_filters as beso_filters
+import beso.beso_separate as beso_separate
+from .import_inp import import_inp
+
 
 plt.close("all")
 start_time = time.time()

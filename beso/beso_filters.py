@@ -1,5 +1,5 @@
 import numpy as np
-import beso_lib
+import beso.beso_lib as beso_lib
 
 def sround(x, s):
     """round float number x to s significant digits"""

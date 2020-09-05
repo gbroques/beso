@@ -6,7 +6,6 @@ import os
 class ImportImpTest(unittest.TestCase):
 
     def test_import_inp(self):
-        os.path.abspath(os.path.dirname(__file__))
         filename = os.path.join(os.path.abspath(
             os.path.dirname(__file__)), 'FEMMeshGmsh.inp')
         domains_from_config = ['SolidMaterialElementGeometry2D']
