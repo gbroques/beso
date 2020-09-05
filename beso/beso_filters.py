@@ -1,3 +1,4 @@
+# Filters to prevent "checkerboard" effect, to fit different tasks
 import numpy as np
 import beso.beso_lib as beso_lib
 import logging
