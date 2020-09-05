@@ -19,4 +19,7 @@ install:
   - conda env create --file environment.yml
   - conda activate beso
 script:
-    - python -m unittest discover tests "*_test.py"
+    - pytest tests --cov=beso/
+after_success:
+  - coveralls
+

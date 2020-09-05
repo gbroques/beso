@@ -25,7 +25,7 @@ Create and activate the `beso` conda environment by following the instructions u
 
 Execute the test-suite with the following command:
 
-    python -m unittest discover tests "*_test.py"
+    pytest tests
 
 ## Environment Setup
 1. Install [Miniconda](https://docs.conda.io/en/latest/miniconda.html).
