@@ -16,7 +16,7 @@ class ImportImpTest(unittest.TestCase):
             nodes,
             Elements,
             domains,
-            opt_domains,
+            optimized_domains,
             plane_strain,
             plane_stress,
             axisymmetry
@@ -50,9 +50,9 @@ class ImportImpTest(unittest.TestCase):
         self.assertEqual(list(Elements.quad4.keys()),
                          domains['SolidMaterialElementGeometry2D'])
 
-        self.assertEqual(len(opt_domains), 1080)
+        self.assertEqual(len(optimized_domains), 1080)
         self.assertEqual(list(Elements.quad4.keys()),
-                         opt_domains)
+                         optimized_domains)
 
         self.assertEqual(plane_strain, set())
         self.assertEqual(plane_stress, set())
