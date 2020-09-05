@@ -1,5 +1,5 @@
 import unittest
-from beso import beso_lib
+from beso.import_inp import import_inp
 import os
 
 
@@ -21,7 +21,7 @@ class ImportImpTest(unittest.TestCase):
             plane_strain,
             plane_stress,
             axisymmetry
-        ] = beso_lib.import_inp(
+        ] = import_inp(
             filename,
             domains_from_config,
             domain_optimized,
