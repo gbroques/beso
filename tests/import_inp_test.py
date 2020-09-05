@@ -5,9 +5,10 @@ import os
 
 class ImportImpTest(unittest.TestCase):
 
-    def test_import_inp(self):
+    def test_import_inp_with_simply_supported_2d_beam(self):
+        """https://github.com/fandaL/beso/wiki/Example-1:-simply-supported-2D-beam"""
         filename = os.path.join(os.path.abspath(
-            os.path.dirname(__file__)), 'FEMMeshGmsh.inp')
+            os.path.dirname(__file__)), 'inp', '2DBeam.inp')
         domains_from_config = ['SolidMaterialElementGeometry2D']
         domain_optimized = {'SolidMaterialElementGeometry2D': True}
         shells_as_composite = False
@@ -53,6 +54,71 @@ class ImportImpTest(unittest.TestCase):
         self.assertEqual(len(optimized_domains), 1080)
         self.assertEqual(list(Elements.quad4.keys()),
                          optimized_domains)
+
+        self.assertEqual(plane_strain, set())
+        self.assertEqual(plane_stress, set())
+        self.assertEqual(axisymmetry, set())
+
+    def test_import_inp_with_engine_bracket(self):
+        """https://github.com/fandaL/beso/wiki/Example-2:-engine-bracket"""
+        filename = os.path.join(os.path.abspath(
+            os.path.dirname(__file__)), 'inp', 'EngineBracket.inp')
+        domains_from_config = ['SolidMaterial001Solid', 'SolidMaterialSolid']
+        domain_optimized = {'SolidMaterial001Solid': True,
+                            'SolidMaterialSolid': False}
+        shells_as_composite = False
+
+        [
+            nodes,
+            Elements,
+            domains,
+            optimized_domains,
+            plane_strain,
+            plane_stress,
+            axisymmetry
+        ] = import_inp(
+            filename,
+            domains_from_config,
+            domain_optimized,
+            shells_as_composite
+        )
+
+        self.assertEqual(len(nodes), 53900)
+        self.assertEqual(type(nodes), dict)
+        self.assertListEqual(
+            nodes[int(1)], [-152.9677040056, -35.94232712384, 31.79731593681])
+        self.assertListEqual(
+            nodes[int(2)], [-163.2966, -25.1368705002, 22.23798726787])
+        self.assertListEqual(
+            nodes[int(2385)], [-91.4908, -5.165291550471, 76.7413436476])
+        self.assertListEqual(
+            nodes[int(53899)], [-93.0232960993, 37.57124391792, 12.40030788603])
+        self.assertListEqual(
+            nodes[int(53900)], [-83.36555067316, 16.90226876028, -3.366081740471])
+
+        self.assertEqual(len(Elements.tetra4), 266382)
+        self.assertEqual(type(Elements.tetra4), dict)
+        print(Elements.tetra4[int(47442)])
+
+        self.assertListEqual(Elements.tetra4[int(42122)], [
+                             269, 8064, 5763, 8100])
+        self.assertListEqual(Elements.tetra4[int(42123)], [
+                             992, 993, 15571, 11196])
+        self.assertListEqual(Elements.tetra4[int(308502)], [
+                             18877, 19532, 2122, 18864])
+        self.assertListEqual(Elements.tetra4[int(308503)], [
+                             2122, 19532, 18877, 2419])
+
+        self.assertListEqual(list(domains.keys()), [
+                             'Evolumes', 'Eall', 'SolidMaterialSolid', 'SolidMaterial001Solid'])
+        self.assertEqual(len(domains['SolidMaterial001Solid']), 261095)
+        self.assertEqual(len(domains['SolidMaterialSolid']), 5287)
+        self.assertEqual(len(
+            domains['SolidMaterial001Solid']) + len(domains['SolidMaterialSolid']), 266382)
+
+        self.assertEqual(len(optimized_domains), 261095)
+        self.assertEqual(optimized_domains[0], 42122)
+        self.assertEqual(optimized_domains[-1], 307435)
 
         self.assertEqual(plane_strain, set())
         self.assertEqual(plane_stress, set())

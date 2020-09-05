@@ -1,4 +1,5 @@
 import logging
+import os
 
 
 def import_inp(filename, domains_from_config, domain_optimized, shells_as_composite):
@@ -67,7 +68,9 @@ def import_inp(filename, domains_from_config, domain_optimized, shells_as_compos
             if line[:8].upper() == "*INCLUDE":
                 start = 1 + line.index("=")
                 include = line[start:].strip().strip('"')
-                f_include = open(include, "r")
+                parent_path = os.path.abspath(os.path.join(filename, os.pardir))
+                path_to_include_file = os.path.join(parent_path, include)
+                f_include = open(path_to_include_file, "r")
                 continue
             read_node = False
             elm_category = []
