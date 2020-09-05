@@ -1,14 +1,7 @@
 import numpy as np
 import operator
 from math import *
-
-
-# function to print ongoing messages to the log file
-def write_to_log(file_name, msg):
-    f_log = open(file_name[:-4] + ".log", "a")
-    f_log.write(msg)
-    f_log.close()
-
+import logging
 
 # function for computing volumes or area (shell elements) and centres of gravity
 # approximate for 2nd order elements!
@@ -47,7 +40,7 @@ def elm_volume_cg(file_name, nodes, Elements):
     def second_order_info(elm_type):
         msg = "\nINFO: areas and centres of gravity of " + elm_type.upper() + " elements ignore mid-nodes' positions\n"
         print(msg)
-        write_to_log(file_name, msg)
+        logginer.info(msg)
 
     # defining volume and centre of gravity for all element types
     volume_elm = {}
@@ -267,7 +260,7 @@ def write_inp(file_name, file_nameW, elm_states, number_of_states, domains, doma
                             fW.write(str(domain_thickness[dn][sn]) + "\n")
                         fW.write(" \n")
                         if msg_error:
-                            write_to_log(file_name, "\nERROR: " + msg_error + "\n")
+                            logging.error("\nERROR: " + msg_error + "\n")
                             raise Exception(msg_error)
             sections_done = 1
 
@@ -331,7 +324,7 @@ def import_FI_int_pt(reference_value, file_nameW, domains, criteria, domain_FI, 
         f = open(file_nameW + ".dat", "r")
     except IOError:
         msg = "CalculiX result file not found, check your inputs"
-        write_to_log(file_name, "\nERROR: " + msg + "\n")
+        logging.error("\nERROR: " + msg + "\n")
         assert False, msg
     last_time = "initial"  # TODO solve how to read a new step which differs in time
     step_number = -1
@@ -372,7 +365,7 @@ def import_FI_int_pt(reference_value, file_nameW, domains, criteria, domain_FI, 
                     FI_int_pt[FIn].append(eval(criteria[FIn][1]))
                 else:
                     msg = "\nError: failure criterion " + str(criteria[FIn]) + " not recognised.\n"
-                    write_to_log(file_name, msg)
+                    logging.error(msg)
 
     def save_FI(sn, en):
         FI_step[sn][en] = []
@@ -757,7 +750,7 @@ def import_FI_node(reference_value, file_nameW, domains, criteria, domain_FI, fi
         f = open(file_nameW + ".frd", "r")
     except IOError:
         msg = "CalculiX result file not found, check your inputs"
-        write_to_log(file_name, "\nERROR: " + msg + "\n")
+        logging.error("\nERROR: " + msg + "\n")
         assert False, msg
 
     memorized_steps = set()  # steps to use in superposition
@@ -790,7 +783,7 @@ def import_FI_node(reference_value, file_nameW, domains, criteria, domain_FI, fi
                     FI_node[nn][FIn] = eval(criteria[FIn][1])
                 else:
                     msg = "\nError: failure criterion " + str(criteria[FIn]) + " not recognised.\n"
-                    write_to_log(file_name, msg)
+                    logging.error(msg)
 
     def save_FI(sn, en):
         FI_step[sn][en] = []
@@ -1544,7 +1537,7 @@ def import_frd_state(continue_from, elm_states, number_of_states, file_name):
             f = open(continue_from[:-5] + str(state) + ".frd", "r")
         except IOError:
             msg = continue_from[:-5] + str(state) + ".frd" + " file not found. Check your inputs."
-            write_to_log(file_name, "\nERROR: " + msg + "\n")
+            logging.error("\nERROR: " + msg + "\n")
             assert False, msg
 
         read_elm = False
@@ -1568,7 +1561,7 @@ def import_inp_state(continue_from, elm_states, number_of_states, file_name):
             f = open(continue_from[:-5] + str(state) + ".inp", "r")
         except IOError:
             msg = continue_from[:-5] + str(state) + ".inp" + " file not found. Check your inputs."
-            write_to_log(file_name, "\nERROR: " + msg + "\n")
+            logging.error("\nERROR: " + msg + "\n")
             assert False, msg
 
         read_elm = False
@@ -1593,7 +1586,7 @@ def import_csv_state(continue_from, elm_states, file_name):
         f = open(continue_from, "r")
     except IOError:
         msg = continue_from + " file not found. Check your inputs."
-        write_to_log(file_name, "\nERROR: " + msg + "\n")
+        logging.error("\nERROR: " + msg + "\n")
         assert False, msg
 
     headers = f.readline().split(",")

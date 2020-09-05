@@ -8,6 +8,7 @@ import os
 import subprocess
 import sys
 import time
+import logging
 import beso.beso_lib as beso_lib
 import beso.beso_filters as beso_filters
 import beso.beso_separate as beso_separate
@@ -55,6 +56,10 @@ save_resulting_format = "inp vtk"
 # read configuration file to fill variables listed above
 beso_dir = os.path.dirname(__file__)
 exec(open(os.path.join(beso_dir, "beso_conf.py")).read())
+
+log_filename = file_name[:-4] + ".log"
+logging.basicConfig(filename=log_filename, filemode='a', level=logging.INFO)
+
 domains_from_config = domain_optimized.keys()
 criteria = []
 domain_FI_filled = False
@@ -137,7 +142,7 @@ msg += ("save_solver_files       = %s\n" % save_solver_files)
 msg += ("save_resulting_format   = %s\n" % save_resulting_format)
 msg += "\n"
 file_name = os.path.join(path, file_name)
-beso_lib.write_to_log(file_name, msg)
+logging.info(msg)
 
 # mesh and domains importing
 [nodes, Elements, domains, opt_domains, plane_strain, plane_stress, axisymmetry] = import_inp(
@@ -158,7 +163,7 @@ if isinstance(continue_from, int):
         if (len(domain_density[dn]) - 1) < continue_from:
             sn = len(domain_density[dn]) - 1
             msg = "\nINFO: elements from the domain " + dn + " were set to the highest state.\n"
-            beso_lib.write_to_log(file_name, msg)
+            logging.info(msg)
             print(msg)
         else:
             sn = continue_from
@@ -210,7 +215,7 @@ if iterations_limit == "auto":  # automatic setting
         iterations_limit = it + 25
     print("\niterations_limit set automatically to %s" % iterations_limit)
     msg = ("\niterations_limit        = %s\n" % iterations_limit)
-    beso_lib.write_to_log(file_name, msg)
+    logging.info(msg)
 
 # preparing parameters for filtering sensitivity numbers
 weight_factor2 = {}
@@ -308,7 +313,7 @@ if optimization_base == "buckling":
     msg += "  buckling_factors"
 
 msg += "\n"
-beso_lib.write_to_log(file_name, msg)
+logging.info(msg)
 
 # preparing for writing quick results
 file_name_resulting_states = os.path.join(path, "resulting_states")
@@ -372,7 +377,7 @@ while True:
         missing_ccx_results = True
     if missing_ccx_results:
         msg = "CalculiX results not found, check CalculiX for errors."
-        beso_lib.write_to_log(file_name, "\nERROR: " + msg + "\n")
+        logging.error("\nERROR: " + msg + "\n")
         assert False, msg
 
     if domain_FI_filled:
@@ -386,12 +391,12 @@ while True:
                         FI_max[i][dn] = max(FI_max[i][dn], max(FI_step_en))
                     except ValueError:
                         msg = "FI_max computing failed. Check if each domain contains at least one failure criterion."
-                        beso_lib.write_to_log(file_name, "\nERROR: " + msg + "\n")
+                        logging.error("\nERROR: " + msg + "\n")
                         raise Exception(msg)
                     except KeyError:
                         msg = "Some result values are missing. Check available disk space or steps_superposition " \
                               "settings"
-                        beso_lib.write_to_log(file_name, "\nERROR: " + msg + "\n")
+                        logging.error(file_name, "\nERROR: " + msg + "\n")
                         raise Exception(msg)
         print("FI_max, number of violated elements, domain name")
 
@@ -572,8 +577,7 @@ while True:
         for bf in buckling_factors:
             msg += " " + str(bf).rjust(17, " ")
         buckling_factors_all.append(buckling_factors)
-    msg += "\n"
-    beso_lib.write_to_log(file_name, msg)
+    logging.info(msg)
 
     # export element values
     if save_iteration_results and np.mod(float(i), save_iteration_results) == 0:
@@ -642,7 +646,7 @@ while True:
                 mass_goal_i
             except NameError:
                 msg = "\nWARNING: mass goal is lower than initial mass. Check mass_goal_ratio."
-                beso_lib.write_to_log(file_name, msg + "\n")
+                logging.warning(msg + "\n")
         else:
             mass_goal_i = mass_goal_ratio * mass_full
     else:  # adding to initial mass  TODO include stress limit
@@ -714,7 +718,7 @@ while True:
     # check for oscillation state
     if elm_states_before_last == elm_states:  # oscillating state
         msg = "\nOSCILLATION: model turns back to " + str(i - 2) + "th iteration.\n"
-        beso_lib.write_to_log(file_name, msg)
+        logging.info(msg)
         print(msg)
         oscillations = True
         break
@@ -770,7 +774,7 @@ msg = "\n"
 msg += ("Finished at  " + time.ctime() + "\n")
 msg += ("Total time   " + str(total_time_h) + " h " + str(total_time_min) + " min " + str(total_time_s) + " s\n")
 msg += "\n"
-beso_lib.write_to_log(file_name, msg)
+logging.info(msg)
 print("total time: " + str(total_time_h) + " h " + str(total_time_min) + " min " + str(total_time_s) + " s")
 
 fn = 0  # figure number
