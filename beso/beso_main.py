@@ -186,13 +186,7 @@ print("initial optimization domains mass {}" .format(mass[0]))
 
 if iterations_limit == "auto":  # automatic setting
     m = mass[0] / mass_full
-    if ratio_type == "absolute" and (mass_removal_ratio - mass_addition_ratio > 0):
-        iterations_limit = int((m - mass_goal_ratio) /
-                               (mass_removal_ratio - mass_addition_ratio) + 25)
-    elif ratio_type == "absolute" and (mass_removal_ratio - mass_addition_ratio < 0):
-        iterations_limit = int((mass_goal_ratio - m) /
-                               (mass_addition_ratio - mass_removal_ratio) + 25)
-    elif ratio_type == "relative":
+    if ratio_type == "relative":
         it = 0
         if mass_removal_ratio - mass_addition_ratio > 0:
             while m > mass_goal_ratio:
@@ -606,9 +600,7 @@ while True:
             mass_goal_i = mass_goal_ratio * mass_full
 
     # switch element states
-    if ratio_type == "absolute":
-        mass_referential = mass_full
-    elif ratio_type == "relative":
+    if ratio_type == "relative":
         mass_referential = mass[i - 1]
     [elm_states, mass] = beso_lib.switching(elm_states, domains_from_config, domain_optimized, domains, FI_step_max,
                                             domain_density, domain_thickness, domain_shells, area_elm, volume_elm,
