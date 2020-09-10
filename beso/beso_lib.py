@@ -270,14 +270,10 @@ def write_inp(file_name, file_nameW, elm_states, number_of_states, domains, doma
                         line[0:9].upper() == "*EL PRINT" or line[0:14].upper() == "*CONTACT PRINT":
             if outputs_done < 1:
                 fW.write(" \n")
-                if optimization_base in ["stiffness", "buckling"]:
+                if optimization_base in ["stiffness"]:
                     for dn in domains_from_config:
                         fW.write("*EL PRINT, " + "ELSET=" + dn + "\n")
                         fW.write("ENER\n")
-                if optimization_base == "heat":
-                    for dn in domains_from_config:
-                        fW.write("*EL PRINT, " + "ELSET=" + dn + ", FREQUENCY=1000" + "\n")
-                        fW.write("HFL\n")
                 if (reference_points == "integration points") and (domain_FI_filled is True):
                     for dn in domains_from_config:
                         fW.write("*EL PRINT, " + "ELSET=" + dn + "\n")

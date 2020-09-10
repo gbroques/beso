@@ -45,9 +45,6 @@ filter_list = [["simple", 2]]  # [[filter type, range], [next filter type, range
 
 optimization_base = "failure_index"  # "stiffness" - maximization of stiffness (minimization of compliance)
                                      # "failure_index" sensitivity number is given by FI/density
-                                     # "buckling" - maximization of the lowest buckling factor, more modes are taken linearly into account if factor difference is under 0.2
-                                     # "heat" - maximize heat flow through the structure
-                                     # inp file for heat and buckling analysis should contain only one heat or buckling step
 
 cpu_cores = 0  # 0 - use all processor cores, N - will use N number of processor cores
 

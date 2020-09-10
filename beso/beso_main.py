@@ -234,8 +234,6 @@ for dn in domains_from_config:
 msg += "\n   i              mass"
 if optimization_base == "stiffness":
     msg += "    ener_dens_mean"
-if optimization_base == "heat":
-    msg += "    heat_flux_mean"
 if domain_FI_filled:
     msg += " FI_violated_0)"
     for dno in range(len(domains_from_config) - 1):
@@ -253,8 +251,6 @@ if displacement_graph:
             msg += (" " + ns + "(u_total)").rjust(18, " ")
         else:
             msg += (" " + ns + "(" + component + ")").rjust(18, " ")
-if optimization_base == "buckling":
-    msg += "  buckling_factors"
 
 msg += "\n"
 logging.info(msg)
@@ -301,8 +297,7 @@ while True:
                          file_nameW], cwd=path, shell=True)
 
     # reading results and computing failure indeces
-    if (reference_points == "integration points") or (optimization_base == "stiffness") or \
-            (optimization_base == "buckling") or (optimization_base == "heat"):  # from .dat file
+    if reference_points == "integration points" or optimization_base == "stiffness":  # from .dat file
         [FI_step, energy_density_step, disp_i, buckling_factors, energy_density_eigen, heat_flux] = \
             beso_lib.import_FI_int_pt(reference_value, file_nameW, domains, criteria, domain_FI, file_name, elm_states,
                                       domains_from_config, steps_superposition, displacement_graph)
@@ -311,10 +306,6 @@ while True:
     # check if results were found
     missing_ccx_results = False
     if (optimization_base == "stiffness") and (not energy_density_step):
-        missing_ccx_results = True
-    elif (optimization_base == "buckling") and (not buckling_factors):
-        missing_ccx_results = True
-    elif (optimization_base == "heat") and (not heat_flux):
         missing_ccx_results = True
     elif domain_FI_filled and (not FI_step):
         missing_ccx_results = True
@@ -366,12 +357,6 @@ while True:
                         energy_density_step[sn][en])
             if optimization_base == "stiffness":
                 sensitivity_number[en] = max(energy_density_enlist[en])
-            elif optimization_base == "heat":
-                try:
-                    sensitivity_number[en] = heat_flux[en] / volume_elm[en]
-                except KeyError:
-                    sensitivity_number[en] = heat_flux[en] / \
-                        (area_elm[en] * domain_thickness[dn][elm_states[en]])
             elif optimization_base == "failure_index":
                 sensitivity_number[en] = FI_step_max[en] / \
                     domain_density[dn][elm_states[en]]
@@ -382,30 +367,6 @@ while True:
             print(str(FI_max[i][dn]).rjust(15) + " " +
                   str(FI_violated[i][dno]).rjust(4) + "   " + dn)
         dno += 1
-
-    # buckling sensitivities
-    if optimization_base == "buckling":
-        # eigen energy density normalization
-        #energy_density_eigen[eigen_number][en_last] = np.average(ener_int_pt)
-        denominator = []  # normalization denominator for each buckling factor with numbering from 0
-        for eigen_number in energy_density_eigen:  # numbering from 1
-            denominator.append(
-                max(energy_density_eigen[eigen_number].values()))
-        bf_dif = {}
-        bf_coef = {}
-        buckling_influence_tolerance = 0.2  # Ki - K1 tolerance to influence sensitivity
-        for bfn in range(len(buckling_factors) - 1):
-            bf_dif_i = buckling_factors[bfn + 1] - buckling_factors[0]
-            if bf_dif_i < buckling_influence_tolerance:
-                bf_dif[bfn] = bf_dif_i
-                bf_coef[bfn] = bf_dif_i / buckling_influence_tolerance
-        for dn in domains_from_config:
-            for en in domains[dn]:
-                sensitivity_number[en] = energy_density_eigen[1][en] / \
-                    denominator[0]
-                for bfn in bf_dif:
-                    sensitivity_number[en] += energy_density_eigen[bfn +
-                                                                   1][en] / denominator[bfn] * bf_coef[bfn]
 
     # filtering sensitivity number
     kp = 0
@@ -434,8 +395,6 @@ while True:
         mass_without_state0 = 0
     if optimization_base == "stiffness":
         energy_density_mean_sum = 0  # mean of element maximums
-    if optimization_base == "heat":
-        heat_flux_mean_sum = 0
     for dn in domain_optimized:
         if domain_optimized[dn] is True:
             for en in domain_shells[dn]:
@@ -449,8 +408,6 @@ while True:
                 if optimization_base == "stiffness":
                     energy_density_mean_sum += max(
                         energy_density_enlist[en]) * mass_elm
-                if optimization_base == "heat":
-                    heat_flux_mean_sum += heat_flux[en] * mass_elm
             for en in domain_volumes[dn]:
                 mass_elm = domain_density[dn][elm_states[en]] * volume_elm[en]
                 if domain_FI_filled:
@@ -461,8 +418,6 @@ while True:
                 if optimization_base == "stiffness":
                     energy_density_mean_sum += max(
                         energy_density_enlist[en]) * mass_elm
-                if optimization_base == "heat":
-                    heat_flux_mean_sum += heat_flux[en] * mass_elm
     if domain_FI_filled:
         FI_mean.append(FI_mean_sum / mass[i])
         print("FI_mean                = {}".format(FI_mean[i]))
@@ -476,21 +431,11 @@ while True:
     if optimization_base == "stiffness":
         energy_density_mean.append(energy_density_mean_sum / mass[i])
         print("energy_density_mean    = {}".format(energy_density_mean[i]))
-    if optimization_base == "heat":
-        heat_flux_mean.append(heat_flux_mean_sum / mass[i])
-        print("heat_flux_mean         = {}".format(heat_flux_mean[i]))
 
-    if optimization_base == "buckling":
-        k = 1
-        for bf in buckling_factors:
-            print("buckling factor K{} = {}".format(k, bf))
-            k += 1
     # writing log table row
     msg = str(i).rjust(4, " ") + " " + str(mass[i]).rjust(17, " ") + " "
     if optimization_base == "stiffness":
         msg += " " + str(energy_density_mean[i]).rjust(17, " ")
-    if optimization_base == "heat":
-        msg += " " + str(heat_flux_mean[i]).rjust(17, " ")
     if domain_FI_filled:
         msg += str(FI_violated[i][0]).rjust(13, " ")
         for dno in range(len(domains_from_config) - 1):
@@ -507,10 +452,6 @@ while True:
             msg += " " + str(FI_max_all).rjust(17, " ")
     for cn in range(len(displacement_graph)):
         msg += " " + str(disp_i[cn]).rjust(17, " ")
-    if optimization_base == "buckling":
-        for bf in buckling_factors:
-            msg += " " + str(bf).rjust(17, " ")
-        buckling_factors_all.append(buckling_factors)
     logging.info(msg)
 
     # export element values
@@ -775,18 +716,6 @@ if optimization_base == "stiffness":
     plt.tight_layout()
     plt.savefig(os.path.join(path, "energy_density_mean"), dpi=100)
 
-if optimization_base == "heat":
-    # plot mean energy density
-    fn += 1
-    plt.figure(fn)
-    plt.plot(range(i+1), heat_flux_mean)
-    plt.title("Mean Heat Flux weighted by element mass")
-    plt.xlabel("Iteration")
-    plt.ylabel("heat_flux_mean")
-    plt.grid()
-    plt.tight_layout()
-    plt.savefig(os.path.join(path, "heat_flux_mean"), dpi=100)
-
 if displacement_graph:
     fn += 1
     plt.figure(fn)
@@ -804,21 +733,5 @@ if displacement_graph:
     plt.tight_layout()
     plt.savefig(os.path.join(path, "Displacement_max"), dpi=100)
 
-if optimization_base == "buckling":
-    fn += 1
-    plt.figure(fn)
-    for bfn in range(len(buckling_factors_all[0])):
-        buckling_factors_bfn = []
-        for ii in range(i + 1):
-            buckling_factors_bfn.append(buckling_factors_all[ii][bfn])
-        plt.plot(range(i + 1), buckling_factors_bfn,
-                 label="mode " + str(bfn + 1))
-    plt.legend(loc=2, fontsize=10)
-    plt.title("Buckling factors")
-    plt.xlabel("Iteration")
-    plt.ylabel("buckling_factors")
-    plt.grid()
-    plt.tight_layout()
-    plt.savefig(os.path.join(path, "buckling_factors"), dpi=100)
 
 plt.show()
