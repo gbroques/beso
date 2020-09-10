@@ -11,7 +11,6 @@ import time
 import logging
 import beso.beso_lib as beso_lib
 import beso.beso_filters as beso_filters
-import beso.beso_separate as beso_separate
 from .import_inp import import_inp
 
 
@@ -231,10 +230,6 @@ for ft in filter_list:
             [weight_factor2, near_elm] = beso_filters.prepare2s(cg, cg_min, cg_max, f_range, domains_to_filter,
                                                                 weight_factor2, near_elm)
 
-# separating elements for reading nodal input
-if reference_points == "nodes":
-    beso_separate.separating(file_name, nodes)
-
 # writing log table header
 msg = "\n"
 msg += "domain order: \n"
@@ -317,11 +312,6 @@ while True:
         [FI_step, energy_density_step, disp_i, buckling_factors, energy_density_eigen, heat_flux] = \
             beso_lib.import_FI_int_pt(reference_value, file_nameW, domains, criteria, domain_FI, file_name, elm_states,
                                       domains_from_config, steps_superposition, displacement_graph)
-    if reference_points == "nodes":  # from .frd file
-        FI_step = beso_lib.import_FI_node(reference_value, file_nameW, domains, criteria, domain_FI, file_name,
-                                          elm_states, steps_superposition)
-        disp_i = beso_lib.import_displacement(
-            file_nameW, displacement_graph, steps_superposition)
     disp_max.append(disp_i)
 
     # check if results were found
@@ -690,8 +680,6 @@ if not (save_iteration_results and np.mod(float(i), save_iteration_results) == 0
 # removing solver files
 if "inp" not in save_solver_files:
     os.remove(file_nameW + ".inp")
-    if reference_points == "nodes":
-        os.remove(file_name[:-4] + "_separated.inp")
 if "dat" not in save_solver_files:
     os.remove(file_nameW + ".dat")
 if "frd" not in save_solver_files:
