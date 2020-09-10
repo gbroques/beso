@@ -31,7 +31,6 @@ path = "."
 path_calculix = ""
 file_name = "Plane_Mesh.inp"
 mass_goal_ratio = 0.4
-continue_from = ""
 filter_list = [["simple", 0]]
 optimization_base = "stiffness"
 cpu_cores = 0
@@ -119,7 +118,6 @@ for dn in domain_optimized:
     msg += ("domain_same_state       = %s\n" % domain_same_state[dn])
     msg += "\n"
 msg += ("mass_goal_ratio         = %s\n" % mass_goal_ratio)
-msg += ("continue_from           = %s\n" % continue_from)
 msg += ("filter_list             = %s\n" % filter_list)
 msg += ("optimization_base       = %s\n" % optimization_base)
 msg += ("cpu_cores               = %s\n" % cpu_cores)
@@ -163,32 +161,10 @@ for dn in domains_from_config:  # distinguishing shell elements and volume eleme
 
 # initialize element states
 elm_states = {}
-if isinstance(continue_from, int):
-    for dn in domains_from_config:
-        if (len(domain_density[dn]) - 1) < continue_from:
-            sn = len(domain_density[dn]) - 1
-            msg = "\nINFO: elements from the domain " + \
-                dn + " were set to the highest state.\n"
-            logging.info(msg)
-            print(msg)
-        else:
-            sn = continue_from
-        for en in domains[dn]:
-            elm_states[en] = sn
-elif continue_from[-4:] == ".frd":
-    elm_states = beso_lib.import_frd_state(
-        continue_from, elm_states, number_of_states, file_name)
-elif continue_from[-4:] == ".inp":
-    elm_states = beso_lib.import_inp_state(
-        continue_from, elm_states, number_of_states, file_name)
-elif continue_from[-4:] == ".csv":
-    elm_states = beso_lib.import_csv_state(
-        continue_from, elm_states, file_name)
-else:
-    for dn in domains_from_config:
-        for en in domains[dn]:
-            elm_states[en] = len(domain_density[dn]) - \
-                1  # set to highest state
+for dn in domains_from_config:
+    for en in domains[dn]:
+        elm_states[en] = len(domain_density[dn]) - \
+            1  # set to highest state
 
 # computing volume or area, and centre of gravity of each element
 [cg, cg_min, cg_max, volume_elm, area_elm] = beso_lib.elm_volume_cg(

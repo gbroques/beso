@@ -37,12 +37,6 @@ domain_same_state[elset_name] = False  # False - element states can differ,
 mass_goal_ratio = 0.4  # the goal mass as a fragment of the full mass of optimized domains,
                        # i.e. fragment of mass evaluated from effective density and volumes of optimized elements in the highest state
 
-continue_from = ""  # if not "", optimization will load element states from the given files,
-                              # for previously generated csv file use "file_name.csv"
-                              # for inp or frd meshes use 0th file name e.g. "file051_res_mesh0.inp" or "file051_res_mesh0.frd"
-                              # or use number N without apostrophes to start each element from state N (numbered from 0)
-                              # (continuing from vtk result file is not supported)
-
 filter_list = [["simple", 2]]  # [[filter type, range, domains or nothing for all domains], [next filter type, range, "domain1", "domain2"], ...]
                             # filter types:
                             # "over points" - filter with step over own point mesh, works on sensitivities TODO does not work correctly, need a fix
