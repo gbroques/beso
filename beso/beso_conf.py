@@ -6,6 +6,9 @@ path = "."  # path to the working directory (without whitespaces) where the init
 #path = "."  # example - in the current working directory
 #path = "~/tmp/beso/"  # Linux example
 #path = "D:\\tmp\\"  # Windows example
+# TODO: Why not just automatically find path to ccx instead of have user input it??
+#       shutil.which("ccx")
+#       https://docs.python.org/3/library/shutil.html#shutil.which
 path_calculix = "/usr/bin/ccx"  # path to the CalculiX solver
 #path_calculix = "/usr/bin/ccx"  # Linux example, may help shell command: which ccx
 #path_calculix = "d:\\soft\FreeCad\\FreeCAD_0.17.8264_x64_dev_win\\bin\\ccx"  # Windows example
