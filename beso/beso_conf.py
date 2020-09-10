@@ -70,13 +70,6 @@ ratio_type = "relative"  # "relative" - ratios of actual mass
 compensate_state_filter = True  # True - if state filter changes iteration mass, next iteration will compensate it
                                  # False - do nothing
 
-steps_superposition = []  # make linear superposition of stress tensors from different steps to save time for evaluation of new load cases,
-                          # [] - do not superpose
-                          # exammple for 2 new load cases:
-                          # [[(0.5, 1), (0.2, 2)], [(-1.5, 3)]]
-                          # first superposition is from the first step (i.e. step 1) with stress tensor multiplied by 0.5 plus stress tensor from step 2 multiplied by 0.2,
-                          # second superposition is only from step 3 but with stress tensor multiplied by -1.5
-
 iterations_limit = "auto"  # "auto" - automatic estimate, <integer> - the maximum allowable number of iterations
 tolerance = 1e-3  # the maximum relative difference in mean stress in optimization domains between the last 5 iterations needed to finish
 

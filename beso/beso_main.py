@@ -43,7 +43,6 @@ mass_addition_ratio = 0.01
 mass_removal_ratio = 0.03
 ratio_type = "relative"
 compensate_state_filter = False
-steps_superposition = []
 iterations_limit = "auto"
 tolerance = 1e-3
 displacement_graph = []
@@ -130,7 +129,6 @@ msg += ("mass_removal_ratio      = %s\n" % mass_removal_ratio)
 msg += ("ratio_type              = %s\n" % ratio_type)
 msg += ("compensate_state_filter = %s\n" % compensate_state_filter)
 msg += ("sensitivity_averaging   = %s\n" % sensitivity_averaging)
-msg += ("steps_superposition     = %s\n" % steps_superposition)
 msg += ("iterations_limit        = %s\n" % iterations_limit)
 msg += ("tolerance               = %s\n" % tolerance)
 msg += ("displacement_graph      = %s\n" % displacement_graph)
@@ -300,7 +298,7 @@ while True:
     if reference_points == "integration points" or optimization_base == "stiffness":  # from .dat file
         [FI_step, energy_density_step, disp_i, buckling_factors, energy_density_eigen, heat_flux] = \
             beso_lib.import_FI_int_pt(reference_value, file_nameW, domains, criteria, domain_FI, file_name, elm_states,
-                                      domains_from_config, steps_superposition, displacement_graph)
+                                      domains_from_config, displacement_graph)
     disp_max.append(disp_i)
 
     # check if results were found
@@ -329,8 +327,7 @@ while True:
                         logging.error("\nERROR: " + msg + "\n")
                         raise Exception(msg)
                     except KeyError:
-                        msg = "Some result values are missing. Check available disk space or steps_superposition " \
-                              "settings"
+                        msg = "Some result values are missing. Check available disk space."
                         logging.error(file_name, "\nERROR: " + msg + "\n")
                         raise Exception(msg)
         print("FI_max, number of violated elements, domain name")

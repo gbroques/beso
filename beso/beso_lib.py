@@ -309,7 +309,7 @@ def write_inp(file_name, file_nameW, elm_states, number_of_states, domains, doma
 # function for importing results from .dat file
 # Failure Indices are computed at each integration point and maximum or average above each element is returned
 def import_FI_int_pt(reference_value, file_nameW, domains, criteria, domain_FI, file_name, elm_states,
-                     domains_from_config, steps_superposition, displacement_graph):
+                     domains_from_config, displacement_graph):
     try:
         f = open(file_nameW + ".dat", "r")
     except IOError:
@@ -323,17 +323,6 @@ def import_FI_int_pt(reference_value, file_nameW, domains, criteria, domain_FI, 
     energy_density_step = []  # list for steps - [{en1: energy_density, en2: ..., ...}, {en1: ..., ...}, next step]
     energy_density_eigen = {}  # energy_density_eigen[eigen_number][en_last] = np.average(ener_int_pt)
     heat_flux = {}  # only for the last step
-
-    memorized_steps = set()  # steps to use in superposition
-    if steps_superposition:
-        step_stress = {}  # {sn: {en: [sxx, syy, szz, sxy, sxz, syz], next element with int. pt. stresses}, next step, ...}
-        step_ener = {}  # energy density {sn: {en: ener, next element with int. pt. stresses}, next step, ...}
-        for LCn in range(len(steps_superposition)):
-            for (scale, sn) in steps_superposition[LCn]:
-                sn -= 1  # step numbering in CalculiX is from 1, but we have it 0 based
-                memorized_steps.add(sn)
-                step_stress[sn] = {}
-                step_ener[sn] = {}
 
     # prepare FI dict from failure criteria
     for dn in domain_FI:
@@ -410,8 +399,6 @@ def import_FI_int_pt(reference_value, file_nameW, domains, criteria, domain_FI, 
                     step_number += 1
                     FI_step.append({})
                     energy_density_step.append({})
-                    if steps_superposition:
-                        disp_components.append({})  # appending sn
                     last_time = line_split[-1]
                     read_eigenvalues = False  # TODO not for frequencies?
         elif line[:24] == " internal energy density":
@@ -421,8 +408,6 @@ def import_FI_int_pt(reference_value, file_nameW, domains, criteria, domain_FI, 
                     step_number += 1
                     FI_step.append({})
                     energy_density_step.append({})
-                    if steps_superposition:
-                        disp_components.append({})  # appending sn
                     last_time = line_split[-1]
                     read_eigenvalues = False  # TODO not for frequencies?
 
@@ -448,16 +433,6 @@ def import_FI_int_pt(reference_value, file_nameW, domains, criteria, domain_FI, 
                     disp_condition[cn] = []
                 cn += 1
             read_displacement = 2
-            if steps_superposition:
-                if last_time != line_split[-1]:
-                    step_number += 1
-                    disp_components.append({})  # appending sn
-                    FI_step.append({})
-                    energy_density_step.append({})
-                    last_time = line_split[-1]
-                ns = line_split[4]
-                disp_components[-1][ns] = []  # appending ns
-
         elif read_stresses == 1:
             en = int(line_split[0])
             if en_last != en:
@@ -475,12 +450,6 @@ def import_FI_int_pt(reference_value, file_nameW, domains, criteria, domain_FI, 
             szx = sxz
             szy = syz
             compute_FI()
-            if step_number in memorized_steps:
-                try:
-                    step_stress[step_number][en]
-                except KeyError:
-                    step_stress[step_number][en] = []
-                step_stress[step_number][en].append([sxx, syy, szz, sxy, sxz, syz])
 
         elif read_energy_density == 1:
             en = int(line_split[0])
@@ -494,12 +463,6 @@ def import_FI_int_pt(reference_value, file_nameW, domains, criteria, domain_FI, 
                 en_last = en
             energy_density = float(line_split[2])
             ener_int_pt.append(energy_density)
-            if step_number in memorized_steps:
-                try:
-                    step_ener[step_number][en]
-                except KeyError:
-                    step_ener[step_number][en] = []
-                    step_ener[step_number][en].append(energy_density)
 
         elif read_heat_flux == 1:
             en = int(line_split[0])
@@ -521,8 +484,6 @@ def import_FI_int_pt(reference_value, file_nameW, domains, criteria, domain_FI, 
                     disp_condition[cn].append(sqrt(ux ** 2 + uy ** 2 + uz ** 2))
                 else:
                     disp_condition[cn].append(eval(component))
-            if steps_superposition:  # save ux, uy, uz for steps superposition
-                disp_components[step_number][ns].append((ux, uy, uz))
 
     if read_stresses == 1:
         save_FI(step_number, en_last)
@@ -540,100 +501,6 @@ def import_FI_int_pt(reference_value, file_nameW, domains, criteria, domain_FI, 
             except TypeError:
                 disp_i[cn] = max(disp_condition[cn])
     f.close()
-
-    # superposed steps
-    # step_stress = {sn: {en: [[sxx, syy, szz, sxy, sxz, syz], next integration point], next element with int. pt. stresses}, next step, ...}
-    # steps_superposition = [[(sn, scale), next scaled step to add, ...], next superposed step]
-    for LCn in range(len(steps_superposition)):
-        FI_step.append({})
-        energy_density_step.append({})
-
-        # sum scaled stress components at each integration point
-        superposition_stress = {}
-        superposition_energy_density = {}
-        for (scale, sn) in steps_superposition[LCn]:
-            sn -= 1  # step numbering in CalculiX is from 1, but we have it 0 based
-            # with stresses
-            for en in step_stress[sn]:
-                try:
-                    superposition_stress[en]
-                except KeyError:
-                    superposition_stress[en] = []  # list of integration points
-                for ip in range(len(step_stress[sn][en])):
-                    try:
-                        superposition_stress[en][ip]
-                    except IndexError:
-                        superposition_stress[en].append([0, 0, 0, 0, 0, 0])  # components of stress
-                    for component in range(6):
-                        superposition_stress[en][ip][component] += scale * step_stress[sn][en][ip][component]
-            # again with energy density
-            for en in step_ener[sn]:
-                try:
-                    superposition_energy_density[en]
-                except KeyError:
-                    superposition_energy_density[en] = []  # list of integration points
-                for ip in range(len(step_ener[sn][en])):
-                    try:
-                        superposition_energy_density[en][ip]
-                    except IndexError:
-                        superposition_energy_density[en].append(0)  # components of stress
-                    for component in range(6):
-                        superposition_energy_density[en][ip] += scale * step_ener[sn][en][ip]
-
-        # compute FI in each element at superposed step
-        for en in superposition_stress:
-            FI_int_pt = [[] for _ in range(len(criteria))]
-            for ip in range(len(superposition_stress[en])):
-                sxx = superposition_stress[en][ip][0]
-                syy = superposition_stress[en][ip][1]
-                szz = superposition_stress[en][ip][2]
-                sxy = superposition_stress[en][ip][3]
-                sxz = superposition_stress[en][ip][4]
-                syz = superposition_stress[en][ip][5]
-                syx = sxy
-                szx = sxz
-                szy = syz
-                compute_FI()  # fill FI_int_pt
-            sn = -1  # last step number
-            save_FI(sn, en)  # save value to FI_step for given en
-        # compute average energy density over integration point at superposed step
-        for en in superposition_energy_density:
-            ener_int_pt = []
-            for ip in range(len(superposition_energy_density[en])):
-                ener_int_pt.append(superposition_energy_density[en][ip])
-            sn = -1  # last step number
-            energy_density_step[sn][en] = np.average(ener_int_pt)
-
-        # superposition of displacements to graph, same code block as in import_displacement function
-        cn = 0
-        for (ns, component) in displacement_graph:
-            ns = ns.upper()
-            uxe = []
-            uye = []
-            uze = []
-            for en2 in range(len(disp_components[0][ns])):
-                uxe.append(0)
-                uye.append(0)
-                uze.append(0)
-                for (scale, sn) in steps_superposition[LCn]:
-                    sn -= 1  # step numbering in CalculiX is from 1, but we have it 0 based
-                    uxe[-1] += scale * disp_components[sn][ns][en2][0]
-                    uye[-1] += scale * disp_components[sn][ns][en2][1]
-                    uze[-1] += scale * disp_components[sn][ns][en2][2]
-
-            for en2 in range(len(uxe)):  # iterate over elements in nset
-                ux = uxe.pop()
-                uy = uye.pop()
-                uz = uze.pop()
-                if component.upper() == "TOTAL":  # total displacement
-                    disp_condition[cn].append(sqrt(ux ** 2 + uy ** 2 + uz ** 2))
-                else:
-                    disp_condition[cn].append(eval(component))
-            try:
-                disp_i[cn] = max([disp_i[cn]] + disp_condition[cn])
-            except TypeError:
-                disp_i[cn] = max(disp_condition[cn])
-            cn += 1
 
     return FI_step, energy_density_step, disp_i, buckling_factors, energy_density_eigen, heat_flux
 
