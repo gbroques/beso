@@ -62,7 +62,6 @@ shells_as_composite = False  # True - use more integration points to catch bendi
                              # False - use ordinary shell section
 reference_points = "integration points"  # "integration points" - read int. pt values (stresses) from .dat file,
 reference_value = "max"  # "max" - maximal value on element,
-                        # "average" - average value on element (not convenient for bended shell elements when optimization_base = "failure_index")
 sensitivity_averaging = False  # True - averaging sensitivity numbers with previous iteration, False - do not average
 
 mass_addition_ratio = 0.01  # mass to be added in each iteration

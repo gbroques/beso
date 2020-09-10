@@ -364,8 +364,6 @@ def import_FI_int_pt(reference_value, file_nameW, domains, criteria, domain_FI, 
             if FIn in criteria_elm[en]:
                 if reference_value == "max":
                     FI_step[sn][en][FIn] = max(FI_int_pt[FIn])
-                elif reference_value == "average":
-                    FI_step[sn][en][FIn] = np.average(FI_int_pt[FIn])
 
     read_stresses = 0
     read_energy_density = 0
