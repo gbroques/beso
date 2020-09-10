@@ -223,58 +223,13 @@ below_elm = {}
 for ft in filter_list:
     if ft[0] and ft[1]:
         f_range = ft[1]
-        if ft[0] == "casting":
-            if len(ft) == 3:
-                domains_to_filter = list(opt_domains)
-                beso_filters.check_same_state(
-                    domain_same_state, domains_from_config, file_name)
-            else:
-                domains_to_filter = []
-                filtered_dn = []
-                for dn in ft[3:]:
-                    domains_to_filter += domains[dn]
-                    filtered_dn.append(dn)
-                beso_filters.check_same_state(
-                    domain_same_state, filtered_dn, file_name)
-            casting_vector = ft[2]
-            [above_elm, below_elm] = beso_filters.prepare2s_casting(cg, f_range, domains_to_filter,
-                                                                    above_elm, below_elm, casting_vector)
-            continue  # to evaluate other filters
         if len(ft) == 2:
             domains_to_filter = list(opt_domains)
             beso_filters.check_same_state(
                 domain_same_state, domains_from_config, file_name)
-        else:
-            domains_to_filter = []
-            filtered_dn = []
-            for dn in ft[3:]:
-                domains_to_filter += domains[dn]
-                filtered_dn.append(dn)
-            beso_filters.check_same_state(
-                domain_same_state, filtered_dn, file_name)
-        if ft[0] == "over points":
-            beso_filters.check_same_state(
-                domain_same_state, domains_from_config, file_name)
-            [w_f3, n_e3, n_p] = beso_filters.prepare3_tetra_grid(
-                file_name, cg, f_range, domains_to_filter)
-            weight_factor3.append(w_f3)
-            near_elm3.append(n_e3)
-            near_points.append(n_p)
-        elif ft[0] == "over nodes":
-            beso_filters.check_same_state(
-                domain_same_state, domains_from_config, file_name)
-            [w_f_n, M_, w_f_d, n_n] = beso_filters.prepare1s(
-                nodes, Elements, cg, f_range, domains_to_filter)
-            weight_factor_node.append(w_f_n)
-            M.append(M_)
-            weight_factor_distance.append(w_f_d)
-            near_nodes.append(n_n)
-        elif ft[0] == "simple":
+        if ft[0] == "simple":
             [weight_factor2, near_elm] = beso_filters.prepare2s(cg, cg_min, cg_max, f_range, domains_to_filter,
                                                                 weight_factor2, near_elm)
-        elif ft[0].split()[0] in ["erode", "dilate", "open", "close", "open-close", "close-open", "combine"]:
-            near_elm = beso_filters.prepare_morphology(
-                cg, cg_min, cg_max, f_range, domains_to_filter, near_elm)
 
 # separating elements for reading nodal input
 if reference_points == "nodes":
@@ -473,38 +428,11 @@ while True:
     kn = 0
     for ft in filter_list:
         if ft[0] and ft[1]:
-            if ft[0] == "casting":
-                if len(ft) == 3:
-                    domains_to_filter = list(opt_domains)
-                else:
-                    domains_to_filter = []
-                    for dn in ft[3:]:
-                        domains_to_filter += domains[dn]
-                sensitivity_number = beso_filters.run2_casting(sensitivity_number, above_elm, below_elm,
-                                                               domains_to_filter)
-                continue  # to evaluate other filters
             if len(ft) == 2:
                 domains_to_filter = list(opt_domains)
-            else:
-                domains_to_filter = []
-                for dn in ft[2:]:
-                    domains_to_filter += domains[dn]
-            if ft[0] == "over points":
-                sensitivity_number = beso_filters.run3(sensitivity_number, weight_factor3[kp], near_elm3[kp],
-                                                       near_points[kp])
-                kp += 1
-            elif ft[0] == "over nodes":
-                sensitivity_number = beso_filters.run1(file_name, sensitivity_number, weight_factor_node[kn], M[kn],
-                                                       weight_factor_distance[kn], near_nodes[kn], nodes,
-                                                       domains_to_filter)
-                kn += 1
-            elif ft[0] == "simple":
+            if ft[0] == "simple":
                 sensitivity_number = beso_filters.run2(file_name, sensitivity_number, weight_factor2, near_elm,
                                                        domains_to_filter)
-            elif ft[0].split()[0] in ["erode", "dilate", "open", "close", "open-close", "close-open", "combine"]:
-                if ft[0].split()[1] == "sensitivity":
-                    sensitivity_number = beso_filters.run_morphology(sensitivity_number, near_elm, domains_to_filter,
-                                                                     ft[0].split()[0])
 
     if sensitivity_averaging:
         for en in opt_domains:
@@ -702,35 +630,8 @@ while True:
     mass_not_filtered = mass[i]  # use variable to store the "right" mass
     for ft in filter_list:
         if ft[0] and ft[1]:
-            if ft[0] == "casting":
-                continue  # to evaluate other filters
             if len(ft) == 2:
                 domains_to_filter = list(opt_domains)
-            else:
-                domains_to_filter = []
-                for dn in ft[2:]:
-                    domains_to_filter += domains[dn]
-
-            if ft[0].split()[0] in ["erode", "dilate", "open", "close", "open-close", "close-open", "combine"]:
-                if ft[0].split()[1] == "state":
-                    # the same filter as for sensitivity numbers
-                    elm_states_filtered = beso_filters.run_morphology(elm_states, near_elm, domains_to_filter,
-                                                                      ft[0].split()[0], FI_step_max)
-                    # compute mass difference
-                    for dn in domains_from_config:
-                        if domain_optimized[dn] is True:
-                            for en in domain_shells[dn]:
-                                if elm_states[en] != elm_states_filtered[en]:
-                                    mass[i] += area_elm[en] * (
-                                        domain_density[dn][elm_states_filtered[en]] * domain_thickness[dn][
-                                            elm_states_filtered[en]]
-                                        - domain_density[dn][elm_states[en]] * domain_thickness[dn][elm_states[en]])
-                                    elm_states[en] = elm_states_filtered[en]
-                            for en in domain_volumes[dn]:
-                                if elm_states[en] != elm_states_filtered[en]:
-                                    mass[i] += volume_elm[en] * (
-                                        domain_density[dn][elm_states_filtered[en]] - domain_density[dn][elm_states[en]])
-                                    elm_states[en] = elm_states_filtered[en]
     print("mass = {}" .format(mass[i]))
     mass_excess = mass[i] - mass_not_filtered
 

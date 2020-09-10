@@ -37,26 +37,10 @@ domain_same_state[elset_name] = False  # False - element states can differ,
 mass_goal_ratio = 0.4  # the goal mass as a fragment of the full mass of optimized domains,
                        # i.e. fragment of mass evaluated from effective density and volumes of optimized elements in the highest state
 
-filter_list = [["simple", 2]]  # [[filter type, range, domains or nothing for all domains], [next filter type, range, "domain1", "domain2"], ...]
+filter_list = [["simple", 2]]  # [[filter type, range], [next filter type, range]]
                             # filter types:
-                            # "over points" - filter with step over own point mesh, works on sensitivities TODO does not work correctly, need a fix
-                            # "over nodes" - filter with step over nodes (suffer from boundary sticking?, 2nd order elements need more memory), works on sensitivities
-                            # "simple" - averages sensitivity number with surroundings (suffer from boundary sticking?), works on sensitivities
-                            # morphology based filters:
-                            # "erode sensitivity" - use minimum sensitivity number in radius range
-                            # "dilate sensitivity" - use maximum sensitivity number in radius range
-                            # "open sensitivity" - aims to remove elements smaller than filter radius(it is "erode" and than "dilate" filter)
-                            # "close sensitivity" - aims to close holes smaller than filter radius (it is "dilate" and than "erode" filter)
-                            # "open-close sensitivity" - (it is "open" and than "close" filter)
-                            # "close-open sensitivity" - (it is "close" and than "open" filter)
-                            # "combine sensitivity" - average of erode and delate (i.e. simplified/dirty "open-close" or "close-open" filter)
-
-                            # replace "sensitivity" by "state" to use filter on element states instead of sensitivities
-
-                            # manufacturing filters:
-                            # ["casting", tolerance, vector of casting direction, domains or nothing for all domains]
-                            # e.g. filter_list = [["casting", 2., (0, 0, 1)], ["simple", 2.]]  # where simple filter is used after casting filter
-
+                            # "simple" - averages sensitivity number with surroundings (suffer from boundary sticking?),
+                            # works on sensitivities
 # ADVANCED INPUTS:
 
 optimization_base = "failure_index"  # "stiffness" - maximization of stiffness (minimization of compliance)
