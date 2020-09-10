@@ -322,7 +322,6 @@ def import_FI_int_pt(reference_value, file_nameW, domains, criteria, domain_FI, 
     FI_step = []  # list for steps - [{en1: list for criteria FI, en2: [], ...}, {en1: [], en2: [], ...}, next step]
     energy_density_step = []  # list for steps - [{en1: energy_density, en2: ..., ...}, {en1: ..., ...}, next step]
     energy_density_eigen = {}  # energy_density_eigen[eigen_number][en_last] = np.average(ener_int_pt)
-    heat_flux = {}  # only for the last step
 
     # prepare FI dict from failure criteria
     for dn in domain_FI:
@@ -356,11 +355,9 @@ def import_FI_int_pt(reference_value, file_nameW, domains, criteria, domain_FI, 
 
     read_stresses = 0
     read_energy_density = 0
-    read_heat_flux = 0
     read_displacement = 0
     disp_i = [None for _ in range(len(displacement_graph))]
     disp_condition = {}
-    disp_components = []
     read_buckling_factors = 0
     buckling_factors = []
     read_eigenvalues = 0
@@ -374,8 +371,6 @@ def import_FI_int_pt(reference_value, file_nameW, domains, criteria, domain_FI, 
                     energy_density_eigen[eigen_number][en_last] = np.average(ener_int_pt)
                 else:
                     energy_density_step[step_number][en_last] = np.average(ener_int_pt)
-            if read_heat_flux == 1:
-                heat_flux[en_last] = np.average(heat_int_pt)
             if read_displacement == 1:
                 for cn in ns_reading:
                     try:
@@ -384,12 +379,10 @@ def import_FI_int_pt(reference_value, file_nameW, domains, criteria, domain_FI, 
                         disp_i[cn] = max(disp_condition[cn])
             read_stresses -= 1
             read_energy_density -= 1
-            read_heat_flux -= 1
             read_displacement -= 1
             read_buckling_factors -= 1
             FI_int_pt = [[] for _ in range(len(criteria))]
             ener_int_pt = []
-            heat_int_pt = []
             en_last = None
 
         elif line[:9] == " stresses":
@@ -410,10 +403,6 @@ def import_FI_int_pt(reference_value, file_nameW, domains, criteria, domain_FI, 
                     energy_density_step.append({})
                     last_time = line_split[-1]
                     read_eigenvalues = False  # TODO not for frequencies?
-
-        elif line[:10] == " heat flux":
-            if line.split()[-4] in map(lambda x: x.upper(), domains_from_config):  # TODO upper already on user input
-                read_heat_flux = 2
 
         elif line[:48] == "     B U C K L I N G   F A C T O R   O U T P U T":
             read_buckling_factors = 3
@@ -464,16 +453,6 @@ def import_FI_int_pt(reference_value, file_nameW, domains, criteria, domain_FI, 
             energy_density = float(line_split[2])
             ener_int_pt.append(energy_density)
 
-        elif read_heat_flux == 1:
-            en = int(line_split[0])
-            if en_last != en:
-                if en_last:
-                    heat_flux[en_last] = np.average(heat_int_pt)
-                    heat_int_pt = []
-                en_last = en
-            heat_flux_total = np.sqrt(float(line_split[2]) ** 2 + float(line_split[3]) ** 2 + float(line_split[4]) ** 2)
-            heat_int_pt.append(heat_flux_total)
-
         elif read_displacement == 1:
             ux = float(line_split[1])
             uy = float(line_split[2])
@@ -492,8 +471,6 @@ def import_FI_int_pt(reference_value, file_nameW, domains, criteria, domain_FI, 
             energy_density_eigen[eigen_number][en_last] = np.average(ener_int_pt)
         else:
             energy_density_step[step_number][en_last] = np.average(ener_int_pt)
-    if read_heat_flux == 1:
-        heat_flux[en_last] = np.average(heat_int_pt)
     if read_displacement == 1:
         for cn in ns_reading:
             try:
@@ -502,7 +479,7 @@ def import_FI_int_pt(reference_value, file_nameW, domains, criteria, domain_FI, 
                 disp_i[cn] = max(disp_condition[cn])
     f.close()
 
-    return FI_step, energy_density_step, disp_i, buckling_factors, energy_density_eigen, heat_flux
+    return FI_step, energy_density_step, disp_i, buckling_factors, energy_density_eigen
 
 # function for switch element states
 def switching(elm_states, domains_from_config, domain_optimized, domains, FI_step_max, domain_density, domain_thickness,
