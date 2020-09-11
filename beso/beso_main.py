@@ -36,7 +36,6 @@ FI_violated_tolerance = 1
 decay_coefficient = -0.2
 shells_as_composite = False
 reference_points = "integration points"
-reference_value = "max"
 sensitivity_averaging = False
 mass_addition_ratio = 0.01
 mass_removal_ratio = 0.03
@@ -121,7 +120,6 @@ msg += ("FI_violated_tolerance   = %s\n" % FI_violated_tolerance)
 msg += ("decay_coefficient       = %s\n" % decay_coefficient)
 msg += ("shells_as_composite     = %s\n" % shells_as_composite)
 msg += ("reference_points        = %s\n" % reference_points)
-msg += ("reference_value         = %s\n" % reference_value)
 msg += ("mass_addition_ratio     = %s\n" % mass_addition_ratio)
 msg += ("mass_removal_ratio      = %s\n" % mass_removal_ratio)
 msg += ("ratio_type              = %s\n" % ratio_type)
@@ -295,7 +293,7 @@ while True:
     # reading results and computing failure indices
     if reference_points == "integration points" or optimization_base == "stiffness":  # from .dat file
         [FI_step, energy_density_step, disp_i, energy_density_eigen] = \
-            beso_lib.import_FI_int_pt(reference_value, file_nameW, domains, criteria, domain_FI, file_name, elm_states,
+            beso_lib.import_FI_int_pt(file_nameW, domains, criteria, domain_FI, file_name, elm_states,
                                       domains_from_config, displacement_graph)
     disp_max.append(disp_i)
 

@@ -311,7 +311,7 @@ def write_inp(file_name, file_nameW, elm_states, number_of_states, domains, doma
 
 # function for importing results from .dat file
 # Failure Indices are computed at each integration point and maximum or average above each element is returned
-def import_FI_int_pt(reference_value, file_nameW, domains, criteria, domain_FI, file_name, elm_states,
+def import_FI_int_pt(file_nameW, domains, criteria, domain_FI, file_name, elm_states,
                      domains_from_config, displacement_graph):
     try:
         f = open(file_nameW + ".dat", "r")
@@ -351,8 +351,8 @@ def import_FI_int_pt(reference_value, file_nameW, domains, criteria, domain_FI, 
         for FIn in range(len(criteria)):
             FI_step[sn][en].append(None)
             if FIn in criteria_elm[en]:
-                if reference_value == "max":
-                    FI_step[sn][en][FIn] = max(FI_int_pt[FIn])
+                # reference_value = "max"
+                FI_step[sn][en][FIn] = max(FI_int_pt[FIn])
 
     read_stresses = 0
     read_energy_density = 0
