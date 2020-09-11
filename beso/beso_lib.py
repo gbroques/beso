@@ -150,7 +150,7 @@ def elm_volume_cg(file_name, nodes, Elements):
 # elm_states is a dict of the elements containing 0 for void element or 1 for full element
 def write_inp(file_name, file_nameW, elm_states, number_of_states, domains, domains_from_config, domain_optimized,
               domain_thickness, domain_offset, domain_orientation, domain_material, domain_volumes, domain_shells,
-              plane_strain, plane_stress, axisymmetry, save_iteration_results, i, reference_points, shells_as_composite,
+              plane_strain, plane_stress, axisymmetry, save_iteration_results, i, shells_as_composite,
               optimization_base, displacement_graph, domain_FI_filled):
     fR = open(file_name, "r")
     check_line_endings = False
@@ -277,7 +277,8 @@ def write_inp(file_name, file_nameW, elm_states, number_of_states, domains, doma
                     for dn in domains_from_config:
                         fW.write("*EL PRINT, " + "ELSET=" + dn + "\n")
                         fW.write("ENER\n")
-                if (reference_points == "integration points") and (domain_FI_filled is True):
+                # if reference_points == "integration points" AND ...
+                if domain_FI_filled is True:
                     for dn in domains_from_config:
                         fW.write("*EL PRINT, " + "ELSET=" + dn + "\n")
                         fW.write("S\n")

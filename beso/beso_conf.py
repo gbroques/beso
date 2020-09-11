@@ -53,7 +53,6 @@ decay_coefficient = -0.2  # k - exponential decay coefficient to dump mass_addit
                              # TODO: If we know we want COMPOSITE for S8R and S6 shell elements, then why make it a config option?
 shells_as_composite = False  # True - use more integration points to catch bending stresses (ccx 2.12 WILL FAIL for other than S8R and S6 shell elements)
                              # False - use ordinary shell section
-reference_points = "integration points"  # "integration points" - read int. pt values (stresses) from .dat file,
 sensitivity_averaging = False  # True - averaging sensitivity numbers with previous iteration, False - do not average
 
 mass_addition_ratio = 0.01  # mass to be added in each iteration

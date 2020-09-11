@@ -35,7 +35,6 @@ optimization_base = "stiffness"
 FI_violated_tolerance = 1
 decay_coefficient = -0.2
 shells_as_composite = False
-reference_points = "integration points"
 sensitivity_averaging = False
 mass_addition_ratio = 0.01
 mass_removal_ratio = 0.03
@@ -117,7 +116,6 @@ msg += ("cpu_cores               = %s\n" % cpu_cores)
 msg += ("FI_violated_tolerance   = %s\n" % FI_violated_tolerance)
 msg += ("decay_coefficient       = %s\n" % decay_coefficient)
 msg += ("shells_as_composite     = %s\n" % shells_as_composite)
-msg += ("reference_points        = %s\n" % reference_points)
 msg += ("mass_addition_ratio     = %s\n" % mass_addition_ratio)
 msg += ("mass_removal_ratio      = %s\n" % mass_removal_ratio)
 msg += ("compensate_state_filter = %s\n" % compensate_state_filter)
@@ -279,7 +277,7 @@ while True:
     beso_lib.write_inp(file_name, file_nameW, elm_states, number_of_states, domains, domains_from_config,
                        domain_optimized, domain_thickness, domain_offset, domain_orientation, domain_material,
                        domain_volumes, domain_shells, plane_strain, plane_stress, axisymmetry, save_iteration_results,
-                       i, reference_points, shells_as_composite, optimization_base, displacement_graph,
+                       i, shells_as_composite, optimization_base, displacement_graph,
                        domain_FI_filled)
     # running CalculiX analysis
     ccx_path = shutil.which('ccx')
@@ -292,7 +290,8 @@ while True:
         subprocess.call([ccx_path, file_nameW], cwd=path, shell=True)
 
     # reading results and computing failure indices
-    if reference_points == "integration points" or optimization_base == "stiffness":  # from .dat file
+    # if reference_points == "integration points" or ... stiffness
+    if optimization_base == "stiffness":  # from .dat file
         [FI_step, energy_density_step, disp_i, energy_density_eigen] = \
             beso_lib.import_FI_int_pt(file_nameW, domains, criteria, domain_FI, file_name, elm_states,
                                       domains_from_config, displacement_graph)
