@@ -10,6 +10,7 @@ path = "."  # path to the working directory (without whitespaces) where the init
 file_name = "2DBeam.inp"  # file with prepared linear static analysis
 
 elset_name = "SolidMaterialElementGeometry2D"  # string with name of the element set in .inp file (CASE sensitive!)
+# TODO: Instead of sets of tuples, and we have domain configuration dictionaries?
 domain_optimized[elset_name] = True  # True - optimized domain, False - elements will not be removed
 domain_density[elset_name] = [1e-6, 1]  # equivalent density of the domain material for states of switch_elm
 domain_thickness[elset_name] = [1.0, 1.0]  # thickness of shell elements for states of switch_elm
