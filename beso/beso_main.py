@@ -267,7 +267,6 @@ FI_mean_without_state0 = []  # mean stress without elements in state 0
 energy_density_mean = []  # list of mean energy density in every iteration
 FI_violated = []
 disp_max = []
-buckling_factors_all = []
 i = 0
 i_violated = 0
 continue_iterations = True
@@ -295,7 +294,7 @@ while True:
 
     # reading results and computing failure indeces
     if reference_points == "integration points" or optimization_base == "stiffness":  # from .dat file
-        [FI_step, energy_density_step, disp_i, buckling_factors, energy_density_eigen] = \
+        [FI_step, energy_density_step, disp_i, energy_density_eigen] = \
             beso_lib.import_FI_int_pt(reference_value, file_nameW, domains, criteria, domain_FI, file_name, elm_states,
                                       domains_from_config, displacement_graph)
     disp_max.append(disp_i)

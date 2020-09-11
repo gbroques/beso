@@ -358,8 +358,6 @@ def import_FI_int_pt(reference_value, file_nameW, domains, criteria, domain_FI, 
     read_displacement = 0
     disp_i = [None for _ in range(len(displacement_graph))]
     disp_condition = {}
-    read_buckling_factors = 0
-    buckling_factors = []
     read_eigenvalues = 0
     for line in f:
         line_split = line.split()
@@ -380,7 +378,6 @@ def import_FI_int_pt(reference_value, file_nameW, domains, criteria, domain_FI, 
             read_stresses -= 1
             read_energy_density -= 1
             read_displacement -= 1
-            read_buckling_factors -= 1
             FI_int_pt = [[] for _ in range(len(criteria))]
             ener_int_pt = []
             en_last = None
@@ -403,11 +400,6 @@ def import_FI_int_pt(reference_value, file_nameW, domains, criteria, domain_FI, 
                     energy_density_step.append({})
                     last_time = line_split[-1]
                     read_eigenvalues = False  # TODO not for frequencies?
-
-        elif line[:48] == "     B U C K L I N G   F A C T O R   O U T P U T":
-            read_buckling_factors = 3
-        elif read_buckling_factors == 1:
-            buckling_factors.append(float(line_split[1]))
         elif line[:54] == "                    E I G E N V A L U E    N U M B E R":
             eigen_number = int(line_split[-1])
             read_eigenvalues = True
@@ -479,7 +471,7 @@ def import_FI_int_pt(reference_value, file_nameW, domains, criteria, domain_FI, 
                 disp_i[cn] = max(disp_condition[cn])
     f.close()
 
-    return FI_step, energy_density_step, disp_i, buckling_factors, energy_density_eigen
+    return FI_step, energy_density_step, disp_i, energy_density_eigen
 
 # function for switch element states
 def switching(elm_states, domains_from_config, domain_optimized, domains, FI_step_max, domain_density, domain_thickness,
