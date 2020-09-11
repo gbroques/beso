@@ -253,6 +253,10 @@ file_name_resulting_states = os.path.join(path, "resulting_states")
 [en_all_vtk, associated_nodes] = beso_lib.vtk_mesh(
     file_name_resulting_states, nodes, Elements)
 
+# ===================================================
+#                     MAIN LOOP
+# ===================================================
+
 # ITERATION CYCLE
 sensitivity_number = {}
 sensitivity_number_old = {}
@@ -592,6 +596,12 @@ while True:
         os.remove(file_nameW + ".frd")
         os.remove(file_nameW + ".sta")
         os.remove(file_nameW + ".cvg")
+
+
+# ===================================================
+#                   END OF MAIN LOOP
+# ===================================================
+
 
 # export the resulting mesh
 if not (save_iteration_results and np.mod(float(i), save_iteration_results) == 0):
