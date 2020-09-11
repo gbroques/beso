@@ -41,7 +41,6 @@ mass_addition_ratio = 0.01
 mass_removal_ratio = 0.03
 ratio_type = "relative"
 compensate_state_filter = False
-iterations_limit = "auto"
 tolerance = 1e-3
 displacement_graph = []
 save_iteration_results = 1
@@ -125,7 +124,6 @@ msg += ("mass_removal_ratio      = %s\n" % mass_removal_ratio)
 msg += ("ratio_type              = %s\n" % ratio_type)
 msg += ("compensate_state_filter = %s\n" % compensate_state_filter)
 msg += ("sensitivity_averaging   = %s\n" % sensitivity_averaging)
-msg += ("iterations_limit        = %s\n" % iterations_limit)
 msg += ("tolerance               = %s\n" % tolerance)
 msg += ("displacement_graph      = %s\n" % displacement_graph)
 msg += ("save_iteration_results  = %s\n" % save_iteration_results)
@@ -178,22 +176,23 @@ for dn in domains_from_config:
                 domain_density[dn]) - 1] * volume_elm[en]
 print("initial optimization domains mass {}" .format(mass[0]))
 
-if iterations_limit == "auto":  # automatic setting
-    m = mass[0] / mass_full
-    if ratio_type == "relative":
-        it = 0
-        if mass_removal_ratio - mass_addition_ratio > 0:
-            while m > mass_goal_ratio:
-                m -= m * (mass_removal_ratio - mass_addition_ratio)
-                it += 1
-        else:
-            while m < mass_goal_ratio:
-                m += m * (mass_addition_ratio - mass_removal_ratio)
-                it += 1
-        iterations_limit = it + 25
-    print("\niterations_limit set automatically to %s" % iterations_limit)
-    msg = ("\niterations_limit        = %s\n" % iterations_limit)
-    logging.info(msg)
+# iterations limit - default "auto"matic setting
+iterations_limit = 0
+m = mass[0] / mass_full
+if ratio_type == "relative":
+    it = 0
+    if mass_removal_ratio - mass_addition_ratio > 0:
+        while m > mass_goal_ratio:
+            m -= m * (mass_removal_ratio - mass_addition_ratio)
+            it += 1
+    else:
+        while m < mass_goal_ratio:
+            m += m * (mass_addition_ratio - mass_removal_ratio)
+            it += 1
+    iterations_limit = it + 25
+print("\niterations_limit set automatically to %s" % iterations_limit)
+msg = ("\niterations_limit        = %s\n" % iterations_limit)
+logging.info(msg)
 
 # preparing parameters for filtering sensitivity numbers
 weight_factor2 = {}

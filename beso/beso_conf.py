@@ -62,7 +62,6 @@ ratio_type = "relative"  # "relative" - ratios of actual mass
 compensate_state_filter = True  # True - if state filter changes iteration mass, next iteration will compensate it
                                  # False - do nothing
 
-iterations_limit = "auto"  # "auto" - automatic estimate, <integer> - the maximum allowable number of iterations
 tolerance = 1e-3  # the maximum relative difference in mean stress in optimization domains between the last 5 iterations needed to finish
 
 displacement_graph = []  # plot maximal displacement of the given node set, e.g.
