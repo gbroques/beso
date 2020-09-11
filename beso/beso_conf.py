@@ -24,11 +24,11 @@ domain_orientation[elset_name] = []  # orientations for each state referring to 
                                      # e.g. for 2 states ["or1", "or1"], for isotropic material use empty list []
 domain_FI[elset_name] = [[("stress_von_Mises", 450.0e6)],  # inner tuples () for separate Failure indices
                          [("stress_von_Mises", 450.0)]]  # new inner list [] for the next state of switch_elm
-                        # Failure Indices definition in python tuples (separeate FI for each element state if there are more lists)
+                        # Failure Indices definition in python tuples (separate FI for each element state if there are more lists)
                         # Failure Indice FI = element stress / allowable value
-                        # Failure Indices are not evaluated if they are not defined here, i.e. domain_FI[elset_name] = [], and then optimization_base must not be "failure_index"
+                        # Failure Indices are not evaluated if they are not defined here, i.e. domain_FI[elset_name] = [],
+                        # and then optimization_base must not be "failure_index"
                         # examples:
-                        # [("user_def", "sxx / 600.0"), ("user_def", "syy / 150.0"), ("user_def", "sxy / 50.0")]  # "user_def" defines complete formula for FI
                         # [("stress_von_Mises", 450.0)]  # for von Mises stress give only allowable stress
 domain_material[elset_name] = ["*ELASTIC \n210000e-6,  0.3",  # material definition after CalculiX *MATERIAL card, use \n for line break
                                "*ELASTIC \n210000,  0.3"]  # next string for the next state of switch_elm

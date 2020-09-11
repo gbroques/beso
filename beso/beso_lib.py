@@ -5,6 +5,9 @@ import logging
 
 # function for computing volumes or area (shell elements) and centres of gravity
 # approximate for 2nd order elements!
+# A Linear element or First order element will have nodes only at the corners.
+# However, a Second order element or Quadratic element will have mid side nodes in addition to nodes at the corner.
+# https://www.quora.com/Finite-Element-Analysis-whats-the-difference-between-first-order-and-second-order-elements#:~:text=A%20Linear%20element%20or%20First,to%20nodes%20at%20the%20corner.
 def elm_volume_cg(file_name, nodes, Elements):
     u = [0.0, 0.0, 0.0]
     v = [0.0, 0.0, 0.0]
@@ -339,8 +342,6 @@ def import_FI_int_pt(reference_value, file_nameW, domains, criteria, domain_FI, 
                     s_allowable = criteria[FIn][1]
                     FI_int_pt[FIn].append(np.sqrt(0.5 * ((sxx - syy) ** 2 + (syy - szz) ** 2 + (szz - sxx) ** 2 +
                                                          6 * (sxy ** 2 + syz ** 2 + sxz ** 2))) / s_allowable)
-                elif criteria[FIn][0] == "user_def":
-                    FI_int_pt[FIn].append(eval(criteria[FIn][1]))
                 else:
                     msg = "\nError: failure criterion " + str(criteria[FIn]) + " not recognised.\n"
                     logging.error(msg)
@@ -969,8 +970,6 @@ def export_vtk(file_nameW, nodes, Elements, elm_states, sensitivity_number, crit
     for FIn in range(len(criteria)):
         if criteria[FIn][0] == "stress_von_Mises":
             f.write("\nSCALARS FI=stress_von_Mises/" + str(criteria[FIn][1]).strip() + " float\n")
-        elif criteria[FIn][0] == "user_def":
-            f.write("SCALARS FI=" + criteria[FIn][1].replace(" ", "") + " float\n")
         f.write("LOOKUP_TABLE default\n")
         line_count = 0
         for en in en_all:
