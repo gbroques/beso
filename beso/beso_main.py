@@ -9,6 +9,7 @@ import subprocess
 import sys
 import time
 import logging
+import shutil
 import beso.beso_lib as beso_lib
 import beso.beso_filters as beso_filters
 from .import_inp import import_inp
@@ -27,7 +28,6 @@ domain_FI = {}
 domain_material = {}
 domain_same_state = {}
 path = "."
-path_calculix = ""
 file_name = "Plane_Mesh.inp"
 mass_goal_ratio = 0.4
 filter_list = [["simple", 0]]
@@ -285,14 +285,16 @@ while True:
                        i, reference_points, shells_as_composite, optimization_base, displacement_graph,
                        domain_FI_filled)
     # running CalculiX analysis
+    ccx_path = shutil.which('ccx')
+    if ccx_path is None:
+        print('ccx must be installed, and available in your PATH.')
+        exit(0)
     if sys.platform == 'linux':
-        subprocess.call(
-            [os.path.normpath(path_calculix), file_nameW], cwd=path)
+        subprocess.call([ccx_path, file_nameW], cwd=path)
     else:
-        subprocess.call([os.path.normpath(path_calculix),
-                         file_nameW], cwd=path, shell=True)
+        subprocess.call([ccx_path, file_nameW], cwd=path, shell=True)
 
-    # reading results and computing failure indeces
+    # reading results and computing failure indices
     if reference_points == "integration points" or optimization_base == "stiffness":  # from .dat file
         [FI_step, energy_density_step, disp_i, energy_density_eigen] = \
             beso_lib.import_FI_int_pt(reference_value, file_nameW, domains, criteria, domain_FI, file_name, elm_states,

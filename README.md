@@ -14,10 +14,11 @@ Description with a simple example are in [wiki](https://github.com/fandaL/beso/w
 A fork of [fandaL/beso](https://github.com/fandaL/beso) designed to be simpler.
 
 ## How to Run
-1. Create and activate the `beso` conda environment by following the instructions under [Environment Setup](#environment-setup) first.
-2. Generate a CalculiX input file (`.inp`), and move it into the root of the repository.
+1. Install [CalculiX](http://www.calculix.de/). `ccx` must be in your PATH.
+2. Create and activate the `beso` conda environment by following the instructions under [Environment Setup](#environment-setup) first.
+3. Generate a CalculiX input file (`.inp`), and move it into the root of the repository.
     1. Update the `file_name` in `beso/beso_conf.py`.
-2. Run `python main.py`.
+4. Run `python main.py`.
 
 ## Unit Tests
 Unit tests are included in the `tests/` directory.
