@@ -32,7 +32,6 @@ file_name = "Plane_Mesh.inp"
 mass_goal_ratio = 0.4
 filter_list = [["simple", 0]]
 optimization_base = "stiffness"
-cpu_cores = 0
 FI_violated_tolerance = 1
 decay_coefficient = -0.2
 shells_as_composite = False
@@ -92,8 +91,7 @@ for dn in domains_from_config:
     number_of_states = max(number_of_states, len(domain_density[dn]))
 
 # set an environmental variable driving number of cpu cores to be used by CalculiX
-if cpu_cores == 0:  # use all processor cores
-    cpu_cores = multiprocessing.cpu_count()
+cpu_cores = multiprocessing.cpu_count()
 os.putenv('OMP_NUM_THREADS', str(cpu_cores))
 
 # writing log file with settings
