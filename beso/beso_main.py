@@ -631,6 +631,11 @@ logging.info(msg)
 print("total time: " + str(total_time_h) + " h " +
       str(total_time_min) + " min " + str(total_time_s) + " s")
 
+# TODO: Separate plotting from main beso algorithm
+#       Remove dependency on matplotlib
+# ==============================================================================
+# BEGIN PLOTTING
+# ==============================================================================
 fn = 0  # figure number
 # plot mass
 fn += 1
@@ -730,3 +735,4 @@ if displacement_graph:
 
 
 plt.show()
+# ==============================================================================
