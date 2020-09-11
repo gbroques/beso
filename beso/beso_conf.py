@@ -58,7 +58,6 @@ sensitivity_averaging = False  # True - averaging sensitivity numbers with previ
 
 mass_addition_ratio = 0.01  # mass to be added in each iteration
 mass_removal_ratio = 0.03  # mass to be removed in each iteration
-ratio_type = "relative"  # "relative" - ratios of actual mass
 compensate_state_filter = True  # True - if state filter changes iteration mass, next iteration will compensate it
                                  # False - do nothing
 

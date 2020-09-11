@@ -39,7 +39,6 @@ reference_points = "integration points"
 sensitivity_averaging = False
 mass_addition_ratio = 0.01
 mass_removal_ratio = 0.03
-ratio_type = "relative"
 compensate_state_filter = False
 tolerance = 1e-3
 displacement_graph = []
@@ -121,7 +120,6 @@ msg += ("shells_as_composite     = %s\n" % shells_as_composite)
 msg += ("reference_points        = %s\n" % reference_points)
 msg += ("mass_addition_ratio     = %s\n" % mass_addition_ratio)
 msg += ("mass_removal_ratio      = %s\n" % mass_removal_ratio)
-msg += ("ratio_type              = %s\n" % ratio_type)
 msg += ("compensate_state_filter = %s\n" % compensate_state_filter)
 msg += ("sensitivity_averaging   = %s\n" % sensitivity_averaging)
 msg += ("tolerance               = %s\n" % tolerance)
@@ -179,17 +177,17 @@ print("initial optimization domains mass {}" .format(mass[0]))
 # iterations limit - default "auto"matic setting
 iterations_limit = 0
 m = mass[0] / mass_full
-if ratio_type == "relative":
-    it = 0
-    if mass_removal_ratio - mass_addition_ratio > 0:
-        while m > mass_goal_ratio:
-            m -= m * (mass_removal_ratio - mass_addition_ratio)
-            it += 1
-    else:
-        while m < mass_goal_ratio:
-            m += m * (mass_addition_ratio - mass_removal_ratio)
-            it += 1
-    iterations_limit = it + 25
+# if ratio_type == "relative":
+it = 0
+if mass_removal_ratio - mass_addition_ratio > 0:
+    while m > mass_goal_ratio:
+        m -= m * (mass_removal_ratio - mass_addition_ratio)
+        it += 1
+else:
+    while m < mass_goal_ratio:
+        m += m * (mass_addition_ratio - mass_removal_ratio)
+        it += 1
+iterations_limit = it + 25
 print("\niterations_limit set automatically to %s" % iterations_limit)
 msg = ("\niterations_limit        = %s\n" % iterations_limit)
 logging.info(msg)
@@ -537,8 +535,8 @@ while True:
             mass_goal_i = mass_goal_ratio * mass_full
 
     # switch element states
-    if ratio_type == "relative":
-        mass_referential = mass[i - 1]
+    # if ratio_type == "relative"
+    mass_referential = mass[i - 1]
     [elm_states, mass] = beso_lib.switching(elm_states, domains_from_config, domain_optimized, domains, FI_step_max,
                                             domain_density, domain_thickness, domain_shells, area_elm, volume_elm,
                                             sensitivity_number, mass, mass_referential, mass_addition_ratio,
