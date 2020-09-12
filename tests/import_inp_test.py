@@ -55,9 +55,9 @@ class ImportImpTest(unittest.TestCase):
         self.assertEqual(list(Elements.quad4.keys()),
                          optimized_domains)
 
-        self.assertEqual(plane_strain, set())
-        self.assertEqual(plane_stress, set())
-        self.assertEqual(axisymmetry, set())
+        self.assertSetEqual(axisymmetry, {157, 158, 159})
+        self.assertSetEqual(plane_strain, {160, 161, 162})
+        self.assertSetEqual(plane_stress, {163, 164, 165})
 
     def test_import_inp_with_engine_bracket(self):
         """https://github.com/fandaL/beso/wiki/Example-2:-engine-bracket"""
@@ -98,7 +98,6 @@ class ImportImpTest(unittest.TestCase):
 
         self.assertEqual(len(Elements.tetra4), 266382)
         self.assertEqual(type(Elements.tetra4), dict)
-        print(Elements.tetra4[47442])
 
         self.assertListEqual(Elements.tetra4[42122], [
                              269, 8064, 5763, 8100])
@@ -125,11 +124,11 @@ class ImportImpTest(unittest.TestCase):
         self.assertEqual(axisymmetry, set())
 
     def test_import_inp_when_file_not_found_raises_io_error(self):
-        with self.assertRaises(IOError) as context:
+        with self.assertRaises(Exception) as context:
             import_inp('non-existent-file.inp', [], {}, False)
 
-        self.assertEqual(
-            'CalculiX input file non-existent-file.inp not found. Check your inputs.',
+        self.assertIn(
+            "No such file or directory: 'non-existent-file.inp'",
             str(context.exception)
         )
 

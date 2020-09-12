@@ -1163,6 +1163,23 @@
 1158, 22, 9, 0
 1159, 19, 9, 0
 
+** axisymmetry elements
+*Element, TYPE=CAX3, ELSET=Efaces
+157, 193, 283, 392, 282
+158, 530, 463, 558, 395
+159, 641, 725, 804, 777
+
+** plane strain elements
+*Element, TYPE=CPE3, ELSET=Efaces
+160, 463, 458, 641, 558
+161, 725, 640, 793, 804
+162, 804, 881, 626, 777
+
+** plane stress elements
+*Element, TYPE=CPS3, ELSET=Efaces
+163, 187, 290, 394, 280
+164, 187, 280, 364, 200
+165, 393, 456, 560, 394
 
 ** Face elements
 *Element, TYPE=S4, ELSET=Efaces

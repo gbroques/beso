@@ -130,7 +130,7 @@ logging.info(msg)
 # plane_strain, plane_stress, axisymmetry "special type" sets are only used when writing the inp in each iteration
 # opt_domains is short for "optimized domains"
 [nodes, Elements, domains, opt_domains, plane_strain, plane_stress, axisymmetry] = import_inp(
-    file_name, domains_from_config, domain_optimized, shells_as_composite)
+    file_name, domains_from_config, domain_optimized)
 domain_shells = {}
 domain_volumes = {}
 for dn in domains_from_config:  # distinguishing shell elements and volume elements
