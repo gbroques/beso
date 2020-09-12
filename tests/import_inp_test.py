@@ -30,20 +30,20 @@ class ImportImpTest(unittest.TestCase):
 
         self.assertEqual(len(nodes), 1159)
         self.assertEqual(type(nodes), dict)
-        self.assertListEqual(nodes[int(1)], [0, 0, 0])
-        self.assertListEqual(nodes[int(2)], [0, 18, 0])
+        self.assertListEqual(nodes[1], [0, 0, 0])
+        self.assertListEqual(nodes[2], [0, 18, 0])
         self.assertListEqual(
-            nodes[int(530)], [1.991512192678, 2.992319281912, 0])
-        self.assertListEqual(nodes[int(1158)], [22, 9, 0])
-        self.assertListEqual(nodes[int(1159)], [19, 9, 0])
+            nodes[530], [1.991512192678, 2.992319281912, 0])
+        self.assertListEqual(nodes[1158], [22, 9, 0])
+        self.assertListEqual(nodes[1159], [19, 9, 0])
 
         self.assertEqual(len(Elements.quad4), 1080)
         self.assertEqual(type(Elements.quad4), dict)
-        self.assertListEqual(Elements.quad4[int(157)], [193, 283, 392, 282])
-        self.assertListEqual(Elements.quad4[int(179)], [852, 987, 1009, 943])
-        self.assertListEqual(Elements.quad4[int(1132)], [
+        self.assertListEqual(Elements.quad4[157], [193, 283, 392, 282])
+        self.assertListEqual(Elements.quad4[179], [852, 987, 1009, 943])
+        self.assertListEqual(Elements.quad4[1132], [
                              934, 1053, 1128, 1020])
-        self.assertListEqual(Elements.quad4[int(1236)], [6, 5, 193, 282])
+        self.assertListEqual(Elements.quad4[1236], [6, 5, 193, 282])
 
         self.assertListEqual(list(domains.keys()), [
                              'Efaces', 'Eall', 'SolidMaterialElementGeometry2D'])
@@ -86,27 +86,27 @@ class ImportImpTest(unittest.TestCase):
         self.assertEqual(len(nodes), 53900)
         self.assertEqual(type(nodes), dict)
         self.assertListEqual(
-            nodes[int(1)], [-152.9677040056, -35.94232712384, 31.79731593681])
+            nodes[1], [-152.9677040056, -35.94232712384, 31.79731593681])
         self.assertListEqual(
-            nodes[int(2)], [-163.2966, -25.1368705002, 22.23798726787])
+            nodes[2], [-163.2966, -25.1368705002, 22.23798726787])
         self.assertListEqual(
-            nodes[int(2385)], [-91.4908, -5.165291550471, 76.7413436476])
+            nodes[2385], [-91.4908, -5.165291550471, 76.7413436476])
         self.assertListEqual(
-            nodes[int(53899)], [-93.0232960993, 37.57124391792, 12.40030788603])
+            nodes[53899], [-93.0232960993, 37.57124391792, 12.40030788603])
         self.assertListEqual(
-            nodes[int(53900)], [-83.36555067316, 16.90226876028, -3.366081740471])
+            nodes[53900], [-83.36555067316, 16.90226876028, -3.366081740471])
 
         self.assertEqual(len(Elements.tetra4), 266382)
         self.assertEqual(type(Elements.tetra4), dict)
-        print(Elements.tetra4[int(47442)])
+        print(Elements.tetra4[47442])
 
-        self.assertListEqual(Elements.tetra4[int(42122)], [
+        self.assertListEqual(Elements.tetra4[42122], [
                              269, 8064, 5763, 8100])
-        self.assertListEqual(Elements.tetra4[int(42123)], [
+        self.assertListEqual(Elements.tetra4[42123], [
                              992, 993, 15571, 11196])
-        self.assertListEqual(Elements.tetra4[int(308502)], [
+        self.assertListEqual(Elements.tetra4[308502], [
                              18877, 19532, 2122, 18864])
-        self.assertListEqual(Elements.tetra4[int(308503)], [
+        self.assertListEqual(Elements.tetra4[308503], [
                              2122, 19532, 18877, 2419])
 
         self.assertListEqual(list(domains.keys()), [
