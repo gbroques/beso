@@ -43,7 +43,7 @@ def elm_volume_cg(file_name, nodes, Elements):
     def second_order_info(elm_type):
         msg = "\nINFO: areas and centres of gravity of " + elm_type.upper() + " elements ignore mid-nodes' positions\n"
         print(msg)
-        logginer.info(msg)
+        logging.info(msg)
 
     # defining volume and centre of gravity for all element types
     volume_elm = {}
