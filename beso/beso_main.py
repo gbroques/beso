@@ -15,7 +15,6 @@ import beso.beso_filters as beso_filters
 from .import_inp import import_inp
 
 
-plt.close("all")
 start_time = time.time()
 
 # initialization of variables - default values
@@ -640,6 +639,8 @@ print("total time: " + str(total_time_h) + " h " +
 # ==============================================================================
 # BEGIN PLOTTING
 # ==============================================================================
+plt.close("all")
+
 fn = 0  # figure number
 # plot mass
 fn += 1
