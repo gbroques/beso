@@ -60,8 +60,6 @@ mass_removal_ratio = 0.03  # mass to be removed in each iteration
 compensate_state_filter = True  # True - if state filter changes iteration mass, next iteration will compensate it
                                  # False - do nothing
 
-tolerance = 1e-3  # the maximum relative difference in mean stress in optimization domains between the last 5 iterations needed to finish
-
 displacement_graph = []  # plot maximal displacement of the given node set, e.g.
                          # [] - do not plot it
                          # [["nset1", "ux"], ["nset2", "uy"]] - plot maximal x displacement of node set nset1 and maximal y displacement of node set nset2

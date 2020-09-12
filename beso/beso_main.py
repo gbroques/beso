@@ -39,7 +39,6 @@ sensitivity_averaging = False
 mass_addition_ratio = 0.01
 mass_removal_ratio = 0.03
 compensate_state_filter = False
-tolerance = 1e-3
 displacement_graph = []
 save_iteration_results = 1
 save_solver_files = ""
@@ -120,7 +119,6 @@ msg += ("mass_addition_ratio     = %s\n" % mass_addition_ratio)
 msg += ("mass_removal_ratio      = %s\n" % mass_removal_ratio)
 msg += ("compensate_state_filter = %s\n" % compensate_state_filter)
 msg += ("sensitivity_averaging   = %s\n" % sensitivity_averaging)
-msg += ("tolerance               = %s\n" % tolerance)
 msg += ("displacement_graph      = %s\n" % displacement_graph)
 msg += ("save_iteration_results  = %s\n" % save_iteration_results)
 msg += ("save_solver_files       = %s\n" % save_solver_files)
@@ -270,6 +268,8 @@ mass_excess = 0.0
 elm_states_before_last = {}
 elm_states_last = elm_states
 oscillations = False
+# the maximum relative difference in mean stress in optimization domains between the last 5 iterations needed to finish
+TOLERANCE = 0.001
 
 while True:
     # creating the new .inp file for CalculiX
@@ -290,11 +290,11 @@ while True:
         subprocess.call([ccx_path, file_nameW], cwd=path, shell=True)
 
     # reading results and computing failure indices
-    # if reference_points == "integration points" or ... stiffness
-    if optimization_base == "stiffness":  # from .dat file
-        [FI_step, energy_density_step, disp_i, energy_density_eigen] = \
-            beso_lib.import_FI_int_pt(file_nameW, domains, criteria, domain_FI, file_name, elm_states,
-                                      domains_from_config, displacement_graph)
+    # if reference_points == "integration points" or optimization_base == stiffness
+    # from .dat file
+    [FI_step, energy_density_step, disp_i, energy_density_eigen] = \
+        beso_lib.import_FI_int_pt(file_nameW, domains, criteria, domain_FI, file_name, elm_states,
+                                  domains_from_config, displacement_graph)
     disp_max.append(disp_i)
 
     # check if results were found
@@ -466,7 +466,7 @@ while True:
         if check_tolerance is True:
             print("maximum relative difference in FI_mean for the last 5 iterations = {}" .format(
                 difference))
-        if difference < tolerance:
+        if difference < TOLERANCE:
             continue_iterations = False
         elif FI_mean[i] == FI_mean[i-1] == FI_mean[i-2]:
             continue_iterations = False
@@ -481,7 +481,7 @@ while True:
         if check_tolerance is True:
             print("maximum relative difference in energy_density_mean for the last 5 iterations = {}".format(
                 difference))
-        if difference < tolerance:
+        if difference < TOLERANCE:
             continue_iterations = False
         elif energy_density_mean[i] == energy_density_mean[i - 1] == energy_density_mean[i - 2]:
             continue_iterations = False
