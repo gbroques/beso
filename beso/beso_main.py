@@ -361,11 +361,9 @@ while True:
     kn = 0
     for ft in filter_list:
         if ft[0] and ft[1]:
-            if len(ft) == 2:
-                domains_to_filter = list(opt_domains)
-            if ft[0] == "simple":
-                sensitivity_number = beso_filters.run2(file_name, sensitivity_number, weight_factor2, near_elm,
-                                                       domains_to_filter)
+            domains_to_filter = opt_domains
+            sensitivity_number = beso_filters.run2(file_name, sensitivity_number, weight_factor2, near_elm,
+                                                   domains_to_filter)
 
     # TODO: sensitivity_averaging is a config option.
     #       why is it needed, and what does it do?
