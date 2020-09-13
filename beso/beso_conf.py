@@ -15,6 +15,8 @@ domain_optimized[elset_name] = True  # True - optimized domain, False - elements
 domain_density[elset_name] = [1e-6, 1]  # equivalent density of the domain material for states of switch_elm
 domain_thickness[elset_name] = [1.0, 1.0]  # thickness of shell elements for states of switch_elm
 domain_offset[elset_name] = 0.0  # offset of shell elements
+                                     # ISOTROPIC - identical values in all directions - glass and metal
+                                     # ANISOTROPIC - different values in all directions - wood and composites
 domain_orientation[elset_name] = []  # orientations for each state referring to inp file,
                                      # e.g. for 2 states ["or1", "or1"], for isotropic material use empty list []
 domain_FI[elset_name] = [[("stress_von_Mises", 450.0e6)],  # inner tuples () for separate Failure indices
