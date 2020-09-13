@@ -1,24 +1,16 @@
 import logging
+from typing import List
+
 from ccxmeshreader import read_mesh
-from beso.group_elements_by_category import group_elements_by_category
+
 from beso.get_special_type_elements import (get_axisymmetry_elements,
                                             get_plane_strain_elements,
                                             get_plane_stress_elements)
+from beso.group_elements_by_category import group_elements_by_category
+
 
 def import_inp(filename, domains_from_config, domain_optimized):
     """function importing a mesh consisting of nodes, volume and shell elements"""
-
-    class Elements:
-        tria3 = {}
-        tria6 = {}
-        quad4 = {}
-        quad8 = {}
-        tetra4 = {}
-        tetra10 = {}
-        hexa8 = {}
-        hexa20 = {}
-        penta6 = {}
-        penta15 = {}
 
     mesh = read_mesh(filename)
     element_dict_by_type = mesh['element_dict_by_type']
@@ -53,6 +45,36 @@ def import_inp(filename, domains_from_config, domain_optimized):
     # only elements in domains_from_config are stored, the rest is discarded
     element_dict_by_category = group_elements_by_category(element_dict_by_type)
 
+    Elements = get_filtered_elements(en_all, element_dict_by_category)
+
+    msg += ("nodes  : %.f\nTRIA3  : %.f\nTRIA6  : %.f\nQUAD4  : %.f\nQUAD8  : %.f\nTETRA4 : %.f\nTETRA10: %.f\n"
+            "HEXA8  : %.f\nHEXA20 : %.f\nPENTA6 : %.f\nPENTA15: %.f\n"
+            % (len(nodes), len(Elements.tria3), len(Elements.tria6), len(Elements.quad4), len(Elements.quad8),
+               len(Elements.tetra4), len(Elements.tetra10), len(
+                Elements.hexa8), len(Elements.hexa20),
+               len(Elements.penta6), len(Elements.penta15)))
+    print(msg)
+    logging.info(msg)
+
+    plane_strain = get_plane_strain_elements(element_dict_by_type)
+    plane_stress = get_plane_stress_elements(element_dict_by_type)
+    axisymmetry = get_axisymmetry_elements(element_dict_by_type)
+
+    return nodes, Elements, domains, opt_domains, plane_strain, plane_stress, axisymmetry
+
+
+def get_filtered_elements(en_all: List[int], element_dict_by_category):
+    class Elements:
+        tria3 = {}
+        tria6 = {}
+        quad4 = {}
+        quad8 = {}
+        tetra4 = {}
+        tetra10 = {}
+        hexa8 = {}
+        hexa20 = {}
+        penta6 = {}
+        penta15 = {}
     all_tria3 = element_dict_by_category['tria3']
     keys = set(en_all).intersection(set(all_tria3.keys()))
     Elements.tria3 = {k: all_tria3[k] for k in keys}
@@ -93,17 +115,4 @@ def import_inp(filename, domains_from_config, domain_optimized):
     keys = set(en_all).intersection(set(all_penta15.keys()))
     Elements.penta15 = {k: all_penta15[k] for k in keys}
 
-    msg += ("nodes  : %.f\nTRIA3  : %.f\nTRIA6  : %.f\nQUAD4  : %.f\nQUAD8  : %.f\nTETRA4 : %.f\nTETRA10: %.f\n"
-            "HEXA8  : %.f\nHEXA20 : %.f\nPENTA6 : %.f\nPENTA15: %.f\n"
-            % (len(nodes), len(Elements.tria3), len(Elements.tria6), len(Elements.quad4), len(Elements.quad8),
-               len(Elements.tetra4), len(Elements.tetra10), len(
-                Elements.hexa8), len(Elements.hexa20),
-               len(Elements.penta6), len(Elements.penta15)))
-    print(msg)
-    logging.info(msg)
-
-    plane_strain = get_plane_strain_elements(element_dict_by_type)
-    plane_stress = get_plane_stress_elements(element_dict_by_type)
-    axisymmetry = get_axisymmetry_elements(element_dict_by_type)
-
-    return nodes, Elements, domains, opt_domains, plane_strain, plane_stress, axisymmetry
+    return Elements
