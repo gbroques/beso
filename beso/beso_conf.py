@@ -37,9 +37,6 @@ filter_list = [["simple", 2]]  # [[filter type, range], [next filter type, range
                             # "simple" - averages sensitivity number with surroundings (suffer from boundary sticking?),
                             # works on sensitivities
 # ADVANCED INPUTS:
-
-optimization_base = "stiffness"  # "stiffness" - maximization of stiffness (minimization of compliance)
-
                              # TODO: If we know we want COMPOSITE for S8R and S6 shell elements, then why make it a config option?
 shells_as_composite = False  # True - use more integration points to catch bending stresses (ccx 2.12 WILL FAIL for other than S8R and S6 shell elements)
                              # False - use ordinary shell section

@@ -28,7 +28,6 @@ path = "."
 file_name = "Plane_Mesh.inp"
 mass_goal_ratio = 0.4
 filter_list = [["simple", 0]]
-optimization_base = "stiffness"
 shells_as_composite = False
 sensitivity_averaging = False
 mass_addition_ratio = 0.01
@@ -81,7 +80,6 @@ for dn in domain_optimized:
     msg += "\n"
 msg += ("mass_goal_ratio         = %s\n" % mass_goal_ratio)
 msg += ("filter_list             = %s\n" % filter_list)
-msg += ("optimization_base       = %s\n" % optimization_base)
 msg += ("shells_as_composite     = %s\n" % shells_as_composite)
 msg += ("mass_addition_ratio     = %s\n" % mass_addition_ratio)
 msg += ("mass_removal_ratio      = %s\n" % mass_removal_ratio)
@@ -191,8 +189,7 @@ for dn in domains_from_config:
     msg += str(dorder) + ") " + dn + "\n"
     dorder += 1
 msg += "\n   i              mass"
-if optimization_base == "stiffness":
-    msg += "    ener_dens_mean"
+msg += "    ener_dens_mean"
 
 msg += "\n"
 logging.info(msg)
@@ -229,7 +226,7 @@ while True:
     beso_lib.write_inp(file_name, file_nameW, elm_states, number_of_states, domains, domains_from_config,
                        domain_optimized, domain_thickness, domain_offset, domain_orientation, domain_material,
                        domain_volumes, domain_shells, plane_strain, plane_stress, axisymmetry, save_iteration_results,
-                       i, shells_as_composite, optimization_base)
+                       i, shells_as_composite)
     # running CalculiX analysis
     ccx_path = shutil.which('ccx')
     if ccx_path is None:
@@ -241,7 +238,6 @@ while True:
         subprocess.call([ccx_path, file_nameW], cwd=path, shell=True)
 
     # reading results and computing failure indices
-    # if reference_points == "integration points" or optimization_base == stiffness
     # from .dat file
     [energy_density_step, energy_density_eigen] = \
         beso_lib.import_FI_int_pt(file_nameW, domains, file_name, elm_states,
@@ -249,7 +245,7 @@ while True:
 
     # check if results were found
     missing_ccx_results = False
-    if (optimization_base == "stiffness") and (not energy_density_step):
+    if not energy_density_step:
         missing_ccx_results = True
     if missing_ccx_results:
         msg = "CalculiX results not found, check CalculiX for errors."
@@ -262,12 +258,9 @@ while True:
     dno = 0
     for dn in domains_from_config:
         for en in domains[dn]:
-            if optimization_base == "stiffness":
-                energy_density_enlist[en] = []
+            energy_density_enlist[en] = []
             for sn in range(len(energy_density_step)):
-                if optimization_base == "stiffness":
-                    energy_density_enlist[en].append(energy_density_step[sn][en])
-            if optimization_base == "stiffness":
+                energy_density_enlist[en].append(energy_density_step[sn][en])
                 sensitivity_number[en] = max(energy_density_enlist[en])
         dno += 1
 
@@ -296,29 +289,24 @@ while True:
             sensitivity_number_old[en] = sensitivity_number[en]
 
     # computing mean stress from maximums of each element in all steps in the optimization domain
-    if optimization_base == "stiffness":
-        energy_density_mean_sum = 0  # mean of element maximums
+    energy_density_mean_sum = 0  # mean of element maximums
     for dn in domain_optimized:
         if domain_optimized[dn] is True:
             for en in domain_shells[dn]:
                 mass_elm = domain_density[dn][elm_states[en]] * \
                     area_elm[en] * domain_thickness[dn][elm_states[en]]
-                if optimization_base == "stiffness":
-                    energy_density_mean_sum += max(
-                        energy_density_enlist[en]) * mass_elm
+                energy_density_mean_sum += max(
+                    energy_density_enlist[en]) * mass_elm
             for en in domain_volumes[dn]:
                 mass_elm = domain_density[dn][elm_states[en]] * volume_elm[en]
-                if optimization_base == "stiffness":
-                    energy_density_mean_sum += max(
-                        energy_density_enlist[en]) * mass_elm
-    if optimization_base == "stiffness":
-        energy_density_mean.append(energy_density_mean_sum / mass[i])
-        print("energy_density_mean    = {}".format(energy_density_mean[i]))
+                energy_density_mean_sum += max(
+                    energy_density_enlist[en]) * mass_elm
+    energy_density_mean.append(energy_density_mean_sum / mass[i])
+    print("energy_density_mean    = {}".format(energy_density_mean[i]))
 
     # writing log table row
     msg = str(i).rjust(4, " ") + " " + str(mass[i]).rjust(17, " ") + " "
-    if optimization_base == "stiffness":
-        msg += " " + str(energy_density_mean[i]).rjust(17, " ")
+    msg += " " + str(energy_density_mean[i]).rjust(17, " ")
     logging.info(msg)
 
     # export element values
@@ -508,17 +496,16 @@ plt.savefig(os.path.join(path, "Mass"), dpi=100)
 if oscillations is True:
     i -= 1  # because other values for i-th iteration are not evaluated
 
-if optimization_base == "stiffness":
-    # plot mean energy density
-    fn += 1
-    plt.figure(fn)
-    plt.plot(range(i+1), energy_density_mean)
-    plt.title("Mean Energy Density weighted by element mass")
-    plt.xlabel("Iteration")
-    plt.ylabel("energy_density_mean")
-    plt.grid()
-    plt.tight_layout()
-    plt.savefig(os.path.join(path, "energy_density_mean"), dpi=100)
+# plot mean energy density
+fn += 1
+plt.figure(fn)
+plt.plot(range(i+1), energy_density_mean)
+plt.title("Mean Energy Density weighted by element mass")
+plt.xlabel("Iteration")
+plt.ylabel("energy_density_mean")
+plt.grid()
+plt.tight_layout()
+plt.savefig(os.path.join(path, "energy_density_mean"), dpi=100)
 
 plt.show()
 # ==============================================================================
