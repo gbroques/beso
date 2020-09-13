@@ -37,7 +37,6 @@ shells_as_composite = False
 sensitivity_averaging = False
 mass_addition_ratio = 0.01
 mass_removal_ratio = 0.03
-compensate_state_filter = False
 displacement_graph = []
 save_iteration_results = 1
 save_solver_files = ""
@@ -116,7 +115,6 @@ msg += ("decay_coefficient       = %s\n" % decay_coefficient)
 msg += ("shells_as_composite     = %s\n" % shells_as_composite)
 msg += ("mass_addition_ratio     = %s\n" % mass_addition_ratio)
 msg += ("mass_removal_ratio      = %s\n" % mass_removal_ratio)
-msg += ("compensate_state_filter = %s\n" % compensate_state_filter)
 msg += ("sensitivity_averaging   = %s\n" % sensitivity_averaging)
 msg += ("displacement_graph      = %s\n" % displacement_graph)
 msg += ("save_iteration_results  = %s\n" % save_iteration_results)
@@ -128,7 +126,7 @@ logging.info(msg)
 
 # mesh and domains importing
 # plane_strain, plane_stress, axisymmetry "special type" sets are only used when writing the inp in each iteration
-# opt_domains is short for "optimized domains"
+# opt_domains is short for "optimized domains"; Just a list of element numbers.
 [nodes, Elements, domains, opt_domains, plane_strain, plane_stress, axisymmetry] = import_inp(
     file_name, domains_from_config, domain_optimized)
 domain_shells = {}
@@ -274,7 +272,6 @@ i = 0
 i_violated = 0
 continue_iterations = True
 check_tolerance = False
-mass_excess = 0.0
 elm_states_before_last = {}
 elm_states_last = elm_states
 oscillations = False
@@ -552,17 +549,8 @@ while True:
     [elm_states, mass] = beso_lib.switching(elm_states, domains_from_config, domain_optimized, domains, FI_step_max,
                                             domain_density, domain_thickness, domain_shells, area_elm, volume_elm,
                                             sensitivity_number, mass, mass_referential, mass_addition_ratio,
-                                            mass_removal_ratio, compensate_state_filter, mass_excess, decay_coefficient,
+                                            mass_removal_ratio, decay_coefficient,
                                             FI_violated, i_violated, i, mass_goal_i, domain_same_state)
-
-    # filtering state
-    mass_not_filtered = mass[i]  # use variable to store the "right" mass
-    for ft in filter_list:
-        if ft[0] and ft[1]:
-            if len(ft) == 2:
-                domains_to_filter = list(opt_domains)
-    print("mass = {}" .format(mass[i]))
-    mass_excess = mass[i] - mass_not_filtered
 
     # export the present mesh
     beso_lib.append_vtk_states(
