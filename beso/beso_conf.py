@@ -28,6 +28,8 @@ domain_material[elset_name] = ["*ELASTIC \n210000e-6,  0.3",  # material definit
 mass_goal_ratio = 0.4  # the goal mass as a fragment of the full mass of optimized domains,
                        # i.e. fragment of mass evaluated from effective density and volumes of optimized elements in the highest state
 
+# TODO: Can we automatically determine the filter radius from mesh element size?
+#       Heuristic is element size * 2 or * 3.
 filter_list = [["simple", 2]]  # [[filter type, range], [next filter type, range]]
                             # filter types:
                             # "simple" - averages sensitivity number with surroundings (suffer from boundary sticking?),
