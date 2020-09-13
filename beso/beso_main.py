@@ -83,10 +83,6 @@ number_of_states = 0  # find number of states possible in elm_states
 for dn in domains_from_config:
     number_of_states = max(number_of_states, len(domain_density[dn]))
 
-# set an environmental variable driving number of cpu cores to be used by CalculiX
-cpu_cores = multiprocessing.cpu_count()
-os.putenv('OMP_NUM_THREADS', str(cpu_cores))
-
 # writing log file with settings
 msg = "\n"
 msg += "---------------------------------------------------\n"
@@ -278,6 +274,9 @@ oscillations = False
 # the maximum relative difference in mean stress in optimization domains between the last 5 iterations needed to finish
 TOLERANCE = 0.001
 
+# set an environmental variable driving number of cpu cores to be used by CalculiX
+cpu_cores = multiprocessing.cpu_count()
+os.putenv('OMP_NUM_THREADS', str(cpu_cores))
 while True:
     # creating the new .inp file for CalculiX
     file_nameW = os.path.join(path, "file" + str(i).zfill(3))
