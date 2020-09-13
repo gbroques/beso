@@ -11,7 +11,6 @@ class ImportImpTest(unittest.TestCase):
             os.path.dirname(__file__)), 'inp', '2DBeam.inp')
         domains_from_config = ['SolidMaterialElementGeometry2D']
         domain_optimized = {'SolidMaterialElementGeometry2D': True}
-        shells_as_composite = False
 
         [
             nodes,
@@ -24,8 +23,7 @@ class ImportImpTest(unittest.TestCase):
         ] = import_inp(
             filename,
             domains_from_config,
-            domain_optimized,
-            shells_as_composite
+            domain_optimized
         )
 
         self.assertEqual(len(nodes), 1159)
@@ -66,7 +64,6 @@ class ImportImpTest(unittest.TestCase):
         domains_from_config = ['SolidMaterial001Solid', 'SolidMaterialSolid']
         domain_optimized = {'SolidMaterial001Solid': True,
                             'SolidMaterialSolid': False}
-        shells_as_composite = False
 
         [
             nodes,
@@ -79,8 +76,7 @@ class ImportImpTest(unittest.TestCase):
         ] = import_inp(
             filename,
             domains_from_config,
-            domain_optimized,
-            shells_as_composite
+            domain_optimized
         )
 
         self.assertEqual(len(nodes), 53900)
@@ -125,7 +121,7 @@ class ImportImpTest(unittest.TestCase):
 
     def test_import_inp_when_file_not_found_raises_io_error(self):
         with self.assertRaises(Exception) as context:
-            import_inp('non-existent-file.inp', [], {}, False)
+            import_inp('non-existent-file.inp', [], {})
 
         self.assertIn(
             "No such file or directory: 'non-existent-file.inp'",

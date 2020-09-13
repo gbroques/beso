@@ -384,7 +384,7 @@ while True:
 
     # TODO: sensitivity_averaging is a config option.
     #       why is it needed, and what does it do?
-    #       If it should stabilize iterations, then why not always use it? 
+    #       If it should stabilize iterations, then why not always use it?
     if sensitivity_averaging:
         for en in opt_domains:
             # averaging with the last iteration should stabilize iterations
