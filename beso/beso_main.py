@@ -28,7 +28,6 @@ path = "."
 file_name = "Plane_Mesh.inp"
 mass_goal_ratio = 0.4
 filter_radius = 0
-shells_as_composite = False
 sensitivity_averaging = False
 mass_addition_ratio = 0.01
 mass_removal_ratio = 0.03
@@ -80,7 +79,6 @@ for dn in domain_optimized:
     msg += "\n"
 msg += ("mass_goal_ratio         = %s\n" % mass_goal_ratio)
 msg += ("filter_radius           = %s\n" % filter_radius)
-msg += ("shells_as_composite     = %s\n" % shells_as_composite)
 msg += ("mass_addition_ratio     = %s\n" % mass_addition_ratio)
 msg += ("mass_removal_ratio      = %s\n" % mass_removal_ratio)
 msg += ("sensitivity_averaging   = %s\n" % sensitivity_averaging)
@@ -223,7 +221,7 @@ while True:
     beso_lib.write_inp(file_name, file_nameW, elm_states, number_of_states, domains, domains_from_config,
                        domain_optimized, domain_thickness, domain_offset, domain_orientation, domain_material,
                        domain_volumes, domain_shells, plane_strain, plane_stress, axisymmetry, save_iteration_results,
-                       i, shells_as_composite)
+                       i)
     # running CalculiX analysis
     ccx_path = shutil.which('ccx')
     if ccx_path is None:
