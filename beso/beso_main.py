@@ -382,6 +382,9 @@ while True:
                 sensitivity_number = beso_filters.run2(file_name, sensitivity_number, weight_factor2, near_elm,
                                                        domains_to_filter)
 
+    # TODO: sensitivity_averaging is a config option.
+    #       why is it needed, and what does it do?
+    #       If it should stabilize iterations, then why not always use it? 
     if sensitivity_averaging:
         for en in opt_domains:
             # averaging with the last iteration should stabilize iterations
