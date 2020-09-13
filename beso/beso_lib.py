@@ -479,7 +479,7 @@ def import_FI_int_pt(file_nameW, domains, criteria, domain_FI, file_name, elm_st
 def switching(elm_states, domains_from_config, domain_optimized, domains, FI_step_max, domain_density, domain_thickness,
               domain_shells, area_elm, volume_elm, sensitivity_number, mass, mass_referential, mass_addition_ratio,
               mass_removal_ratio, decay_coefficient, FI_violated, i_violated, i,
-              mass_goal_i, domain_same_state):
+              mass_goal_i):
 
     def compute_difference(failing=False):
         if en in domain_shells[dn]:  # shells mass difference
@@ -510,83 +510,33 @@ def switching(elm_states, domains_from_config, domain_optimized, domains, FI_ste
     for dn in domains_from_config:
         if domain_optimized[dn] is True:
             len_domain_density_dn = len(domain_density[dn])
-            if domain_same_state[dn] in ["max", "average"]:
-                new_state = 0
-                failing = False
-                highest_state = 0
-                sensitivity_number_list = []
-                sensitivity_number_of_domain = 0
-                for en in domains[dn]:  # find highest state, sensitivity number and if failing
+            for en in domains[dn]:
+                if FI_step_max[en] >= 1:  # increase state if it is not the highest
+                    en_added = False
+                    if elm_states[en] < len_domain_density_dn - 1:
+                        elm_states[en] += 1
+                        en_added = True
                     elm_states_en = elm_states[en]
-                    if elm_states_en >= highest_state:
-                        if domain_same_state[dn] == "max":
-                            sensitivity_number_of_domain = max(sensitivity_number_of_domain, sensitivity_number[en])
-                        highest_state = elm_states_en
-                    if FI_step_max[en] >= 1:  # new state if failing
-                        failing = True
-                        if elm_states_en < len_domain_density_dn - 1:
-                            new_state = max(new_state, elm_states_en + 1)
-                        else:
-                            new_state = max(new_state, elm_states_en)
-                    else:
-                        new_state = max(new_state, elm_states_en)
-                    if domain_same_state[dn] == "average":
-                        sensitivity_number_list.append(sensitivity_number[en])
-
-                if domain_same_state[dn] == "average":
-                    sensitivity_number_of_domain = np.average(sensitivity_number_list)
-
-                mass_increase[dn] = 0
-                mass_decrease[dn] = 0
-                for en in domains[dn]:  # evaluate mass, prepare to sorting and switching
-                    elm_states[en] = highest_state
+                    if en in domain_shells[dn]:  # shells
+                        mass[i] += area_elm[en] * domain_density[dn][elm_states_en] * domain_thickness[
+                            dn][elm_states_en]
+                        if en_added is True:
+                            mass_difference = area_elm[en] * (
+                                domain_density[dn][elm_states_en] * domain_thickness[dn][elm_states_en] -
+                                domain_density[dn][elm_states_en - 1] * domain_thickness[dn][elm_states_en - 1])
+                            mass_overloaded += mass_difference
+                            mass_goal_i += mass_difference
+                    else:  # volumes
+                        mass[i] += volume_elm[en] * domain_density[dn][elm_states_en]
+                        if en_added is True:
+                            mass_difference = volume_elm[en] * (
+                                domain_density[dn][elm_states_en] - domain_density[dn][elm_states_en - 1])
+                            mass_overloaded += mass_difference
+                            mass_goal_i += mass_difference
+                else:  # rest of elements prepare to sorting and switching
                     elm_states_en = elm_states[en]
-                    compute_difference(failing)
-                    if (failing is True) and (new_state != highest_state):
-                            elm_states[en] = new_state
-                            elm_states_en = elm_states[en]
-                            mass[i] += mass_increase[en]
-                            mass_overloaded += mass_increase[en]
-                            mass_goal_i += mass_increase[en]
-                    elif failing is False:  # use domain name dn instead of element number for future switching
-                        sensitivity_number_opt[dn] = sensitivity_number_of_domain
-                        try:
-                            mass_increase[dn] += mass_increase[en]
-                        except KeyError:
-                            pass
-                        try:
-                            mass_decrease[dn] += mass_decrease[en]
-                        except KeyError:
-                            pass
-
-            else: # domain_same_state is False
-                for en in domains[dn]:
-                    if FI_step_max[en] >= 1:  # increase state if it is not the highest
-                        en_added = False
-                        if elm_states[en] < len_domain_density_dn - 1:
-                            elm_states[en] += 1
-                            en_added = True
-                        elm_states_en = elm_states[en]
-                        if en in domain_shells[dn]:  # shells
-                            mass[i] += area_elm[en] * domain_density[dn][elm_states_en] * domain_thickness[
-                                dn][elm_states_en]
-                            if en_added is True:
-                                mass_difference = area_elm[en] * (
-                                    domain_density[dn][elm_states_en] * domain_thickness[dn][elm_states_en] -
-                                    domain_density[dn][elm_states_en - 1] * domain_thickness[dn][elm_states_en - 1])
-                                mass_overloaded += mass_difference
-                                mass_goal_i += mass_difference
-                        else:  # volumes
-                            mass[i] += volume_elm[en] * domain_density[dn][elm_states_en]
-                            if en_added is True:
-                                mass_difference = volume_elm[en] * (
-                                    domain_density[dn][elm_states_en] - domain_density[dn][elm_states_en - 1])
-                                mass_overloaded += mass_difference
-                                mass_goal_i += mass_difference
-                    else:  # rest of elements prepare to sorting and switching
-                        elm_states_en = elm_states[en]
-                        compute_difference()  # mass to add or remove
-                        sensitivity_number_opt[en] = sensitivity_number[en]
+                    compute_difference()  # mass to add or remove
+                    sensitivity_number_opt[en] = sensitivity_number[en]
     # sorting
     sensitivity_number_sorted = sorted(sensitivity_number_opt.items(), key=operator.itemgetter(1))
     sensitivity_number_sorted2 = list(sensitivity_number_sorted)

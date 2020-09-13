@@ -25,7 +25,6 @@ domain_offset = {}
 domain_orientation = {}
 domain_FI = {}
 domain_material = {}
-domain_same_state = {}
 path = "."
 file_name = "Plane_Mesh.inp"
 mass_goal_ratio = 0.4
@@ -74,10 +73,6 @@ for dn in domain_optimized:
         domain_orientation[dn]
     except KeyError:
         domain_orientation[dn] = []
-    try:
-        domain_same_state[dn]
-    except KeyError:
-        domain_same_state[dn] = False
 
 number_of_states = 0  # find number of states possible in elm_states
 for dn in domains_from_config:
@@ -100,12 +95,10 @@ for dn in domain_optimized:
     except KeyError:
         msg += "domain_FI               = None\n"
     msg += ("domain_material         = %s\n" % domain_material[dn])
-    msg += ("domain_same_state       = %s\n" % domain_same_state[dn])
     msg += "\n"
 msg += ("mass_goal_ratio         = %s\n" % mass_goal_ratio)
 msg += ("filter_list             = %s\n" % filter_list)
 msg += ("optimization_base       = %s\n" % optimization_base)
-msg += ("cpu_cores               = %s\n" % cpu_cores)
 msg += ("FI_violated_tolerance   = %s\n" % FI_violated_tolerance)
 msg += ("decay_coefficient       = %s\n" % decay_coefficient)
 msg += ("shells_as_composite     = %s\n" % shells_as_composite)
@@ -206,13 +199,9 @@ near_elm = {}
 for ft in filter_list:
     if ft[0] and ft[1]:
         f_range = ft[1]
-        if len(ft) == 2:
-            domains_to_filter = list(opt_domains)
-            beso_filters.check_same_state(
-                domain_same_state, domains_from_config, file_name)
-        if ft[0] == "simple":
-            [weight_factor2, near_elm] = beso_filters.prepare2s(cg, cg_min, cg_max, f_range, domains_to_filter,
-                                                                weight_factor2, near_elm)
+        domains_to_filter = opt_domains
+        [weight_factor2, near_elm] = beso_filters.prepare2s(cg, cg_min, cg_max, f_range, domains_to_filter,
+                                                            weight_factor2, near_elm)
 # =============================================================================================================
 
 # writing log table header
@@ -549,7 +538,7 @@ while True:
                                             domain_density, domain_thickness, domain_shells, area_elm, volume_elm,
                                             sensitivity_number, mass, mass_referential, mass_addition_ratio,
                                             mass_removal_ratio, decay_coefficient,
-                                            FI_violated, i_violated, i, mass_goal_i, domain_same_state)
+                                            FI_violated, i_violated, i, mass_goal_i)
 
     # export the present mesh
     beso_lib.append_vtk_states(

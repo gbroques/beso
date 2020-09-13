@@ -17,24 +17,6 @@ def sround(x, s):
         result = 0
     return result
 
-
-# function to check if filtering is to be used on domains with prescribed same state
-def check_same_state(domain_same_state, filtered_dn, file_name):
-    wrong_domains = False
-    filtered_dn_set = set(filtered_dn)
-    domains_to_check = set()
-    for dn in domain_same_state:
-        if domain_same_state[dn] in ["max", "average"]:
-            domains_to_check.add(dn)
-    if domains_to_check.intersection(filtered_dn_set):
-        wrong_domains = True
-
-    if wrong_domains is True:
-        msg = "\nERROR: Filtering is used on domain with prescribed same state. It is recommended to exclude this domain" \
-              " from filtering.\n"
-        logging.error(msg)
-        print(msg)
-
 # function preparing values for filtering element to suppress checkerboard
 # uses sectoring to prevent computing distance of far points
 # See the following paper for more information:
