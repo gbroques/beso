@@ -35,7 +35,7 @@ def check_same_state(domain_same_state, filtered_dn, file_name):
         logging.error(msg)
         print(msg)
 
-# function preparing values for filtering element rho to suppress checkerboard
+# function preparing values for filtering element to suppress checkerboard
 # uses sectoring to prevent computing distance of far points
 # See the following paper for more information:
 # Convergent and mesh-independent solutions for the bi-directional evolutionary structural optimization method

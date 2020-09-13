@@ -187,8 +187,27 @@ print("\niterations_limit set automatically to %s" % iterations_limit)
 msg = ("\niterations_limit        = %s\n" % iterations_limit)
 logging.info(msg)
 
-# preparing parameters for filtering sensitivity numbers
+# PREPARING PARAMETERS FOR FILTERING SENSITIVITY NUMBERS
+# ======================================================
+"""
+weight_factor2 is a dictionary where the key is a tuple of two element numbers, and value is some kind of weight.
+               first element in key is min, second element is max
+{
+    (157, 171): 0.9990422039929501,
+    (157, 180): 0.5957267190986004,
+    (157, 181): 0.5863017762553826,
+"""
 weight_factor2 = {}
+
+"""
+near_elm is a dictionary of element number by list of near element numbers.
+{
+    157: [171, 180, 181, 197, 1234, 1235, 1236, 198],
+    171: [157, 197, 1234, 1235, 1236, 164, 198, 199, 172],
+    180: [157, 181, 197, 1236],
+    ...
+}
+"""
 near_elm = {}
 for ft in filter_list:
     if ft[0] and ft[1]:
@@ -200,6 +219,7 @@ for ft in filter_list:
         if ft[0] == "simple":
             [weight_factor2, near_elm] = beso_filters.prepare2s(cg, cg_min, cg_max, f_range, domains_to_filter,
                                                                 weight_factor2, near_elm)
+# =============================================================================================================
 
 # writing log table header
 msg = "\n"
