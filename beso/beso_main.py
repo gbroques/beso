@@ -190,15 +190,6 @@ logging.info(msg)
 # preparing parameters for filtering sensitivity numbers
 weight_factor2 = {}
 near_elm = {}
-weight_factor3 = []
-near_elm3 = []
-near_points = []
-weight_factor_node = []
-M = []
-weight_factor_distance = []
-near_nodes = []
-above_elm = {}
-below_elm = {}
 for ft in filter_list:
     if ft[0] and ft[1]:
         f_range = ft[1]
