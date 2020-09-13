@@ -32,10 +32,10 @@ mass_goal_ratio = 0.40  # the goal mass as a fragment of the full mass of optimi
 
 # TODO: Can we automatically determine the filter radius from mesh element size?
 #       Heuristic is element size * 2 or * 3.
-filter_list = [["simple", 2]]  # [[filter type, range], [next filter type, range]]
-                            # filter types:
-                            # "simple" - averages sensitivity number with surroundings (suffer from boundary sticking?),
-                            # works on sensitivities
+filter_radius = 2
+# averages sensitivity number with surroundings (suffer from boundary sticking?),
+# works on sensitivities
+
 # ADVANCED INPUTS:
                              # TODO: If we know we want COMPOSITE for S8R and S6 shell elements, then why make it a config option?
 shells_as_composite = False  # True - use more integration points to catch bending stresses (ccx 2.12 WILL FAIL for other than S8R and S6 shell elements)

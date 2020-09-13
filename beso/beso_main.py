@@ -27,7 +27,7 @@ domain_material = {}
 path = "."
 file_name = "Plane_Mesh.inp"
 mass_goal_ratio = 0.4
-filter_list = [["simple", 0]]
+filter_radius = 0
 shells_as_composite = False
 sensitivity_averaging = False
 mass_addition_ratio = 0.01
@@ -79,7 +79,7 @@ for dn in domain_optimized:
     msg += ("domain_material         = %s\n" % domain_material[dn])
     msg += "\n"
 msg += ("mass_goal_ratio         = %s\n" % mass_goal_ratio)
-msg += ("filter_list             = %s\n" % filter_list)
+msg += ("filter_radius           = %s\n" % filter_radius)
 msg += ("shells_as_composite     = %s\n" % shells_as_composite)
 msg += ("mass_addition_ratio     = %s\n" % mass_addition_ratio)
 msg += ("mass_removal_ratio      = %s\n" % mass_removal_ratio)
@@ -173,12 +173,9 @@ near_elm is a dictionary of element number by list of near element numbers.
 }
 """
 near_elm = {}
-for ft in filter_list:
-    if ft[0] and ft[1]:
-        f_range = ft[1]
-        domains_to_filter = opt_domains
-        [weight_factor2, near_elm] = beso_filters.prepare2s(cg, cg_min, cg_max, f_range, domains_to_filter,
-                                                            weight_factor2, near_elm)
+domains_to_filter = opt_domains
+[weight_factor2, near_elm] = beso_filters.prepare2s(cg, cg_min, cg_max, filter_radius, domains_to_filter,
+                                                    weight_factor2, near_elm)
 # =============================================================================================================
 
 # writing log table header
@@ -267,11 +264,9 @@ while True:
     # filtering sensitivity number
     kp = 0
     kn = 0
-    for ft in filter_list:
-        if ft[0] and ft[1]:
-            domains_to_filter = opt_domains
-            sensitivity_number = beso_filters.run2(file_name, sensitivity_number, weight_factor2, near_elm,
-                                                   domains_to_filter)
+    domains_to_filter = opt_domains
+    sensitivity_number = beso_filters.run2(file_name, sensitivity_number, weight_factor2, near_elm,
+                                           domains_to_filter)
 
     # TODO: sensitivity_averaging is a config option.
     #       why is it needed, and what does it do?
