@@ -15,6 +15,8 @@ domain_optimized[elset_name] = True  # True - optimized domain, False - elements
 domain_density[elset_name] = [1e-6, 1]  # equivalent density of the domain material for states of switch_elm
 # TODO: Can we just parse this from *SHELL SECTION in the INP file instead?
 domain_thickness[elset_name] = [1.0, 1.0]  # thickness of shell elements for states of switch_elm
+# TODO: Can we just parse OFFSET from *SHELL SECTION?
+#       It's only used for re-writing INP file.
 domain_offset[elset_name] = 0.0  # offset of shell elements
                                      # ISOTROPIC - identical values in all directions - glass and metal
                                      # ANISOTROPIC - different values in all directions - wood and composites
@@ -25,8 +27,8 @@ domain_material[elset_name] = ["*ELASTIC \n210000e-6,  0.3",  # material definit
                                "*ELASTIC \n210000,  0.3"]  # next string for the next state of switch_elm
 # copy this block for defining properties of the next domain
 
-mass_goal_ratio = 0.4  # the goal mass as a fragment of the full mass of optimized domains,
-                       # i.e. fragment of mass evaluated from effective density and volumes of optimized elements in the highest state
+mass_goal_ratio = 0.40  # the goal mass as a fragment of the full mass of optimized domains,
+                        # i.e. fragment of mass evaluated from effective density and volumes of optimized elements in the highest state
 
 # TODO: Can we automatically determine the filter radius from mesh element size?
 #       Heuristic is element size * 2 or * 3.
