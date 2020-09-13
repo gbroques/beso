@@ -29,7 +29,6 @@ file_name = "Plane_Mesh.inp"
 mass_goal_ratio = 0.4
 filter_list = [["simple", 0]]
 optimization_base = "stiffness"
-decay_coefficient = -0.2
 shells_as_composite = False
 sensitivity_averaging = False
 mass_addition_ratio = 0.01
@@ -83,7 +82,6 @@ for dn in domain_optimized:
 msg += ("mass_goal_ratio         = %s\n" % mass_goal_ratio)
 msg += ("filter_list             = %s\n" % filter_list)
 msg += ("optimization_base       = %s\n" % optimization_base)
-msg += ("decay_coefficient       = %s\n" % decay_coefficient)
 msg += ("shells_as_composite     = %s\n" % shells_as_composite)
 msg += ("mass_addition_ratio     = %s\n" % mass_addition_ratio)
 msg += ("mass_removal_ratio      = %s\n" % mass_removal_ratio)
@@ -388,7 +386,7 @@ while True:
     [elm_states, mass] = beso_lib.switching(elm_states, domains_from_config, domain_optimized, domains,
                                             domain_density, domain_thickness, domain_shells, area_elm, volume_elm,
                                             sensitivity_number, mass, mass_referential, mass_addition_ratio,
-                                            mass_removal_ratio, decay_coefficient, i_violated, i, mass_goal_i)
+                                            mass_removal_ratio, i_violated, i, mass_goal_i)
 
     # export the present mesh
     beso_lib.append_vtk_states(

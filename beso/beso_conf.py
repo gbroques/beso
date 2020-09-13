@@ -36,11 +36,6 @@ filter_list = [["simple", 2]]  # [[filter type, range], [next filter type, range
 
 optimization_base = "stiffness"  # "stiffness" - maximization of stiffness (minimization of compliance)
 
-decay_coefficient = -0.2  # k - exponential decay coefficient to dump mass_additive_ratio and mass_removal_ratio after freezing mass
-                          # fits to equation: exp(k * i), where i is iteration number from triggering by reaching goal mass ratio?
-                          # k = -0.2 ~ after 10 iterations slows down approximately 10 times
-                          # k = 0 ~ no decaying
-
                              # TODO: If we know we want COMPOSITE for S8R and S6 shell elements, then why make it a config option?
 shells_as_composite = False  # True - use more integration points to catch bending stresses (ccx 2.12 WILL FAIL for other than S8R and S6 shell elements)
                              # False - use ordinary shell section

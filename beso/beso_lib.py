@@ -373,9 +373,12 @@ def import_FI_int_pt(file_nameW, domains, file_name, elm_states, domains_from_co
 # function for switch element states
 def switching(elm_states, domains_from_config, domain_optimized, domains, domain_density, domain_thickness,
               domain_shells, area_elm, volume_elm, sensitivity_number, mass, mass_referential, mass_addition_ratio,
-              mass_removal_ratio, decay_coefficient, i_violated, i,
-              mass_goal_i):
-
+              mass_removal_ratio, i_violated, i,
+              mass_goal_i, decay_coefficient=-0.2):
+    # k - exponential decay coefficient to dump mass_additive_ratio and mass_removal_ratio after freezing mass
+    # fits to equation: exp(k * i), where i is iteration number from triggering by reaching goal mass ratio?
+    # k = -0.2 ~ after 10 iterations slows down approximately 10 times
+    # k = 0 ~ no decaying
     def compute_difference():
         if en in domain_shells[dn]:  # shells mass difference
             mass[i] += area_elm[en] * domain_density[dn][elm_states_en] * domain_thickness[dn][elm_states_en]
