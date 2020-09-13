@@ -23,7 +23,6 @@ domain_density = {}
 domain_thickness = {}
 domain_offset = {}
 domain_orientation = {}
-domain_FI = {}
 domain_material = {}
 path = "."
 file_name = "Plane_Mesh.inp"
@@ -49,15 +48,6 @@ log_filename = file_name[:-4] + ".log"
 logging.basicConfig(filename=log_filename, filemode='a', level=logging.INFO)
 
 domains_from_config = domain_optimized.keys()
-criteria = []
-domain_FI_filled = False
-for dn in domain_FI:  # extracting each type of criteria
-    if domain_FI[dn]:
-        domain_FI_filled = True
-    for state in range(len(domain_FI[dn])):
-        for dn_crit in domain_FI[dn][state]:
-            if dn_crit not in criteria:
-                criteria.append(dn_crit)
 
 # default values if not defined by user
 for dn in domain_optimized:
@@ -90,10 +80,6 @@ for dn in domain_optimized:
     msg += ("domain_thickness        = %s\n" % domain_thickness[dn])
     msg += ("domain_offset           = %s\n" % domain_offset[dn])
     msg += ("domain_orientation      = %s\n" % domain_orientation[dn])
-    try:
-        msg += ("domain_FI               = %s\n" % domain_FI[dn])
-    except KeyError:
-        msg += "domain_FI               = None\n"
     msg += ("domain_material         = %s\n" % domain_material[dn])
     msg += "\n"
 msg += ("mass_goal_ratio         = %s\n" % mass_goal_ratio)
@@ -214,17 +200,6 @@ for dn in domains_from_config:
 msg += "\n   i              mass"
 if optimization_base == "stiffness":
     msg += "    ener_dens_mean"
-if domain_FI_filled:
-    msg += " FI_violated_0)"
-    for dno in range(len(domains_from_config) - 1):
-        msg += (" " + str(dno + 1)).rjust(4, " ") + ")"
-    if len(domains_from_config) > 1:
-        msg += " all)"
-    msg += "          FI_mean    _without_state0         FI_max_0)"
-    for dno in range(len(domains_from_config) - 1):
-        msg += str(dno + 1).rjust(17, " ") + ")"
-    if len(domains_from_config) > 1:
-        msg += "all".rjust(17, " ") + ")"
 if displacement_graph:
     for (ns, component) in displacement_graph:
         if component == "total":  # total displacement
@@ -247,11 +222,7 @@ file_name_resulting_states = os.path.join(path, "resulting_states")
 # ITERATION CYCLE
 sensitivity_number = {}
 sensitivity_number_old = {}
-FI_max = []
-FI_mean = []  # list of mean stress in every iteration
-FI_mean_without_state0 = []  # mean stress without elements in state 0
 energy_density_mean = []  # list of mean energy density in every iteration
-FI_violated = []
 disp_max = []
 i = 0
 i_violated = 0
@@ -272,8 +243,7 @@ while True:
     beso_lib.write_inp(file_name, file_nameW, elm_states, number_of_states, domains, domains_from_config,
                        domain_optimized, domain_thickness, domain_offset, domain_orientation, domain_material,
                        domain_volumes, domain_shells, plane_strain, plane_stress, axisymmetry, save_iteration_results,
-                       i, shells_as_composite, optimization_base, displacement_graph,
-                       domain_FI_filled)
+                       i, shells_as_composite, optimization_base, displacement_graph)
     # running CalculiX analysis
     ccx_path = shutil.which('ccx')
     if ccx_path is None:
@@ -287,8 +257,8 @@ while True:
     # reading results and computing failure indices
     # if reference_points == "integration points" or optimization_base == stiffness
     # from .dat file
-    [FI_step, energy_density_step, disp_i, energy_density_eigen] = \
-        beso_lib.import_FI_int_pt(file_nameW, domains, criteria, domain_FI, file_name, elm_states,
+    [energy_density_step, disp_i, energy_density_eigen] = \
+        beso_lib.import_FI_int_pt(file_nameW, domains, file_name, elm_states,
                                   domains_from_config, displacement_graph)
     disp_max.append(disp_i)
 
@@ -296,64 +266,24 @@ while True:
     missing_ccx_results = False
     if (optimization_base == "stiffness") and (not energy_density_step):
         missing_ccx_results = True
-    elif domain_FI_filled and (not FI_step):
-        missing_ccx_results = True
     if missing_ccx_results:
         msg = "CalculiX results not found, check CalculiX for errors."
         logging.error("\nERROR: " + msg + "\n")
         assert False, msg
 
-    if domain_FI_filled:
-        FI_max.append({})
-        for dn in domains_from_config:
-            FI_max[i][dn] = 0
-            for en in domains[dn]:
-                for sn in range(len(FI_step)):
-                    try:
-                        FI_step_en = list(
-                            filter(lambda a: a is not None, FI_step[sn][en]))  # drop None FI
-                        FI_max[i][dn] = max(FI_max[i][dn], max(FI_step_en))
-                    except ValueError:
-                        msg = "FI_max computing failed. Check if each domain contains at least one failure criterion."
-                        logging.error("\nERROR: " + msg + "\n")
-                        raise Exception(msg)
-                    except KeyError:
-                        msg = "Some result values are missing. Check available disk space."
-                        logging.error(file_name, "\nERROR: " + msg + "\n")
-                        raise Exception(msg)
-        print("FI_max, number of violated elements, domain name")
-
     # handling with more steps
-    FI_step_max = {}  # maximal FI over all steps for each element in this iteration
     # {en1: [energy from sn1, energy from sn2, ...], en2: [], ...}
     energy_density_enlist = {}
-    FI_violated.append([])
     dno = 0
     for dn in domains_from_config:
-        FI_violated[i].append(0)
         for en in domains[dn]:
-            FI_step_max[en] = 0
             if optimization_base == "stiffness":
                 energy_density_enlist[en] = []
-            for sn in range(len(FI_step)):
-                if domain_FI_filled:
-                    FI_step_en = list(
-                        filter(lambda a: a is not None, FI_step[sn][en]))  # drop None FI
-                    FI_step_max[en] = max(FI_step_max[en], max(FI_step_en))
+            for sn in range(len(energy_density_step)):
                 if optimization_base == "stiffness":
-                    energy_density_enlist[en].append(
-                        energy_density_step[sn][en])
+                    energy_density_enlist[en].append(energy_density_step[sn][en])
             if optimization_base == "stiffness":
                 sensitivity_number[en] = max(energy_density_enlist[en])
-            elif optimization_base == "failure_index":
-                sensitivity_number[en] = FI_step_max[en] / \
-                    domain_density[dn][elm_states[en]]
-            if domain_FI_filled:
-                if FI_step_max[en] >= 1:
-                    FI_violated[i][dno] += 1
-        if domain_FI_filled:
-            print(str(FI_max[i][dn]).rjust(15) + " " +
-                  str(FI_violated[i][dno]).rjust(4) + "   " + dn)
         dno += 1
 
     # filtering sensitivity number
@@ -381,10 +311,6 @@ while True:
             sensitivity_number_old[en] = sensitivity_number[en]
 
     # computing mean stress from maximums of each element in all steps in the optimization domain
-    if domain_FI_filled:
-        FI_mean_sum = 0
-        FI_mean_sum_without_state0 = 0
-        mass_without_state0 = 0
     if optimization_base == "stiffness":
         energy_density_mean_sum = 0  # mean of element maximums
     for dn in domain_optimized:
@@ -392,34 +318,14 @@ while True:
             for en in domain_shells[dn]:
                 mass_elm = domain_density[dn][elm_states[en]] * \
                     area_elm[en] * domain_thickness[dn][elm_states[en]]
-                if domain_FI_filled:
-                    FI_mean_sum += FI_step_max[en] * mass_elm
-                    if elm_states[en] != 0:
-                        FI_mean_sum_without_state0 += FI_step_max[en] * mass_elm
-                        mass_without_state0 += mass_elm
                 if optimization_base == "stiffness":
                     energy_density_mean_sum += max(
                         energy_density_enlist[en]) * mass_elm
             for en in domain_volumes[dn]:
                 mass_elm = domain_density[dn][elm_states[en]] * volume_elm[en]
-                if domain_FI_filled:
-                    FI_mean_sum += FI_step_max[en] * mass_elm
-                    if elm_states[en] != 0:
-                        FI_mean_sum_without_state0 += FI_step_max[en] * mass_elm
-                        mass_without_state0 += mass_elm
                 if optimization_base == "stiffness":
                     energy_density_mean_sum += max(
                         energy_density_enlist[en]) * mass_elm
-    if domain_FI_filled:
-        FI_mean.append(FI_mean_sum / mass[i])
-        print("FI_mean                = {}".format(FI_mean[i]))
-        if mass_without_state0:
-            FI_mean_without_state0.append(
-                FI_mean_sum_without_state0 / mass_without_state0)
-            print("FI_mean_without_state0 = {}".format(
-                FI_mean_without_state0[i]))
-        else:
-            FI_mean_without_state0.append("NaN")
     if optimization_base == "stiffness":
         energy_density_mean.append(energy_density_mean_sum / mass[i])
         print("energy_density_mean    = {}".format(energy_density_mean[i]))
@@ -428,20 +334,6 @@ while True:
     msg = str(i).rjust(4, " ") + " " + str(mass[i]).rjust(17, " ") + " "
     if optimization_base == "stiffness":
         msg += " " + str(energy_density_mean[i]).rjust(17, " ")
-    if domain_FI_filled:
-        msg += str(FI_violated[i][0]).rjust(13, " ")
-        for dno in range(len(domains_from_config) - 1):
-            msg += " " + str(FI_violated[i][dno + 1]).rjust(4, " ")
-        if len(domains_from_config) > 1:
-            msg += " " + str(sum(FI_violated[i])).rjust(4, " ")
-        msg += " " + str(FI_mean[i]).rjust(17, " ") + " " + \
-            str(FI_mean_without_state0[i]).rjust(18, " ")
-        FI_max_all = 0
-        for dn in domains_from_config:
-            msg += " " + str(FI_max[i][dn]).rjust(17, " ")
-            FI_max_all = max(FI_max_all, FI_max[i][dn])
-        if len(domains_from_config) > 1:
-            msg += " " + str(FI_max_all).rjust(17, " ")
     for cn in range(len(displacement_graph)):
         msg += " " + str(disp_i[cn]).rjust(17, " ")
     logging.info(msg)
@@ -449,27 +341,11 @@ while True:
     # export element values
     if save_iteration_results and np.mod(float(i), save_iteration_results) == 0:
         if "csv" in save_resulting_format:
-            beso_lib.export_csv(domains_from_config, domains, criteria, FI_step, FI_step_max, file_nameW, cg,
+            beso_lib.export_csv(domains_from_config, domains, file_nameW, cg,
                                 elm_states, sensitivity_number)
         if "vtk" in save_resulting_format:
-            beso_lib.export_vtk(file_nameW, nodes, Elements, elm_states, sensitivity_number, criteria, FI_step,
-                                FI_step_max)
+            beso_lib.export_vtk(file_nameW, nodes, Elements, elm_states, sensitivity_number)
 
-    # relative difference in a mean stress for the last 5 iterations must be < tolerance
-    if len(FI_mean) > 5:
-        difference_last = []
-        for last in range(1, 6):
-            difference_last.append(
-                abs(FI_mean[i] - FI_mean[i-last]) / FI_mean[i])
-        difference = max(difference_last)
-        if check_tolerance is True:
-            print("maximum relative difference in FI_mean for the last 5 iterations = {}" .format(
-                difference))
-        if difference < TOLERANCE:
-            continue_iterations = False
-        elif FI_mean[i] == FI_mean[i-1] == FI_mean[i-2]:
-            continue_iterations = False
-            print("FI_mean[i] == FI_mean[i-1] == FI_mean[i-2]")
     # relative difference in a mean energy density for the last 5 iterations must be < tolerance
     if len(energy_density_mean) > 5:
         difference_last = []
@@ -491,27 +367,17 @@ while True:
     if continue_iterations is False or i >= iterations_limit:
         if not(save_iteration_results and np.mod(float(i), save_iteration_results) == 0):
             if "csv" in save_resulting_format:
-                beso_lib.export_csv(domains_from_config, domains, criteria, FI_step, FI_step_max, file_nameW, cg,
+                beso_lib.export_csv(domains_from_config, domains, file_nameW, cg,
                                     elm_states, sensitivity_number)
             if "vtk" in save_resulting_format:
-                beso_lib.export_vtk(file_nameW, nodes, Elements, elm_states, sensitivity_number, criteria, FI_step,
-                                    FI_step_max)
+                beso_lib.export_vtk(file_nameW, nodes, Elements, elm_states, sensitivity_number)
         break
     i += 1  # iteration number
     print("\n----------- new iteration number %d ----------" % i)
 
     # set mass_goal for i-th iteration, check for number of violated elements
     if mass_removal_ratio - mass_addition_ratio > 0:  # removing from initial mass
-        if sum(FI_violated[i - 1]) > sum(FI_violated[0]) + FI_violated_tolerance:
-            if mass[i - 1] >= mass_goal_ratio * mass_full:
-                # use mass_new from previous iteration
-                mass_goal_i = mass[i - 1]
-            else:  # not to drop below goal mass
-                mass_goal_i = mass_goal_ratio * mass_full
-            if i_violated == 0:
-                i_violated = i
-                check_tolerance = True
-        elif mass[i - 1] <= mass_goal_ratio * mass_full:  # goal mass achieved
+        if mass[i - 1] <= mass_goal_ratio * mass_full:  # goal mass achieved
             if not i_violated:
                 i_violated = i  # to start decaying
                 check_tolerance = True
@@ -535,11 +401,10 @@ while True:
     # switch element states
     # if ratio_type == "relative"
     mass_referential = mass[i - 1]
-    [elm_states, mass] = beso_lib.switching(elm_states, domains_from_config, domain_optimized, domains, FI_step_max,
+    [elm_states, mass] = beso_lib.switching(elm_states, domains_from_config, domain_optimized, domains,
                                             domain_density, domain_thickness, domain_shells, area_elm, volume_elm,
                                             sensitivity_number, mass, mass_referential, mass_addition_ratio,
-                                            mass_removal_ratio, decay_coefficient,
-                                            FI_violated, i_violated, i, mass_goal_i)
+                                            mass_removal_ratio, decay_coefficient, i_violated, i, mass_goal_i)
 
     # export the present mesh
     beso_lib.append_vtk_states(
@@ -660,59 +525,6 @@ plt.savefig(os.path.join(path, "Mass"), dpi=100)
 
 if oscillations is True:
     i -= 1  # because other values for i-th iteration are not evaluated
-
-if domain_FI_filled:  # FI contain something
-    # plot number of elements with FI > 1
-    fn += 1
-    plt.figure(fn)
-    dno = 0
-    for dn in domains_from_config:
-        FI_violated_dn = []
-        for ii in range(i + 1):
-            FI_violated_dn.append(FI_violated[ii][dno])
-        plt.plot(range(i + 1), FI_violated_dn, label=dn)
-        dno += 1
-    if len(domains_from_config) > 1:
-        FI_violated_total = []
-        for ii in range(i + 1):
-            FI_violated_total.append(sum(FI_violated[ii]))
-        plt.plot(range(i+1), FI_violated_total, label="Total")
-    plt.legend(loc=2, fontsize=10)
-    plt.title("Number of elements with Failure Index >= 1")
-    plt.xlabel("Iteration")
-    plt.ylabel("FI_violated")
-    plt.grid()
-    plt.tight_layout()
-    plt.savefig(os.path.join(path, "FI_violated"), dpi=100)
-
-    # plot mean failure index
-    fn += 1
-    plt.figure(fn)
-    plt.plot(range(i+1), FI_mean, label="all")
-    plt.plot(range(i+1), FI_mean_without_state0, label="without state 0")
-    plt.title("Mean Failure Index weighted by element mass")
-    plt.xlabel("Iteration")
-    plt.ylabel("FI_mean")
-    plt.legend(loc=2, fontsize=10)
-    plt.grid()
-    plt.tight_layout()
-    plt.savefig(os.path.join(path, "FI_mean"), dpi=100)
-
-    # plot maximal failure indices
-    fn += 1
-    plt.figure(fn)
-    for dn in domains_from_config:
-        FI_max_dn = []
-        for ii in range(i + 1):
-            FI_max_dn.append(FI_max[ii][dn])
-        plt.plot(range(i + 1), FI_max_dn, label=dn)
-    plt.legend(loc=2, fontsize=10)
-    plt.title("Maximal domain Failure Index")
-    plt.xlabel("Iteration")
-    plt.ylabel("FI_max")
-    plt.grid()
-    plt.tight_layout()
-    plt.savefig(os.path.join(path, "FI_max"), dpi=100)
 
 if optimization_base == "stiffness":
     # plot mean energy density

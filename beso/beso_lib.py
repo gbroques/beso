@@ -151,7 +151,7 @@ def elm_volume_cg(file_name, nodes, Elements):
 def write_inp(file_name, file_nameW, elm_states, number_of_states, domains, domains_from_config, domain_optimized,
               domain_thickness, domain_offset, domain_orientation, domain_material, domain_volumes, domain_shells,
               plane_strain, plane_stress, axisymmetry, save_iteration_results, i, shells_as_composite,
-              optimization_base, displacement_graph, domain_FI_filled):
+              optimization_base, displacement_graph):
     fR = open(file_name, "r")
     check_line_endings = False
     try:
@@ -277,11 +277,6 @@ def write_inp(file_name, file_nameW, elm_states, number_of_states, domains, doma
                     for dn in domains_from_config:
                         fW.write("*EL PRINT, " + "ELSET=" + dn + "\n")
                         fW.write("ENER\n")
-                # if reference_points == "integration points" AND ...
-                if domain_FI_filled is True:
-                    for dn in domains_from_config:
-                        fW.write("*EL PRINT, " + "ELSET=" + dn + "\n")
-                        fW.write("S\n")
                 if displacement_graph:
                     ns_written = []
                     for [ns, component] in displacement_graph:
@@ -312,7 +307,7 @@ def write_inp(file_name, file_nameW, elm_states, number_of_states, domains, doma
 
 # function for importing results from .dat file
 # Failure Indices are computed at each integration point and maximum or average above each element is returned
-def import_FI_int_pt(file_nameW, domains, criteria, domain_FI, file_name, elm_states,
+def import_FI_int_pt(file_nameW, domains, file_name, elm_states,
                      domains_from_config, displacement_graph):
     try:
         f = open(file_nameW + ".dat", "r")
@@ -322,38 +317,8 @@ def import_FI_int_pt(file_nameW, domains, criteria, domain_FI, file_name, elm_st
         assert False, msg
     last_time = "initial"  # TODO solve how to read a new step which differs in time
     step_number = -1
-    criteria_elm = {}  # {en1: numbers of applied criteria, en2: [], ...}
-    FI_step = []  # list for steps - [{en1: list for criteria FI, en2: [], ...}, {en1: [], en2: [], ...}, next step]
     energy_density_step = []  # list for steps - [{en1: energy_density, en2: ..., ...}, {en1: ..., ...}, next step]
     energy_density_eigen = {}  # energy_density_eigen[eigen_number][en_last] = np.average(ener_int_pt)
-
-    # prepare FI dict from failure criteria
-    for dn in domain_FI:
-        if domain_FI[dn]:
-            for en in domains[dn]:
-                cr = []
-                for dn_crit in domain_FI[dn][elm_states[en]]:
-                    cr.append(criteria.index(dn_crit))
-                criteria_elm[en] = cr
-
-    def compute_FI():  # for the actual integration point
-        if en in criteria_elm:
-            for FIn in criteria_elm[en]:
-                if criteria[FIn][0] == "stress_von_Mises":
-                    s_allowable = criteria[FIn][1]
-                    FI_int_pt[FIn].append(np.sqrt(0.5 * ((sxx - syy) ** 2 + (syy - szz) ** 2 + (szz - sxx) ** 2 +
-                                                         6 * (sxy ** 2 + syz ** 2 + sxz ** 2))) / s_allowable)
-                else:
-                    msg = "\nError: failure criterion " + str(criteria[FIn]) + " not recognised.\n"
-                    logging.error(msg)
-
-    def save_FI(sn, en):
-        FI_step[sn][en] = []
-        for FIn in range(len(criteria)):
-            FI_step[sn][en].append(None)
-            if FIn in criteria_elm[en]:
-                # reference_value = "max"
-                FI_step[sn][en][FIn] = max(FI_int_pt[FIn])
 
     read_stresses = 0
     read_energy_density = 0
@@ -364,8 +329,6 @@ def import_FI_int_pt(file_nameW, domains, criteria, domain_FI, file_name, elm_st
     for line in f:
         line_split = line.split()
         if line.replace(" ", "") == "\n":
-            if read_stresses == 1:
-                save_FI(step_number, en_last)
             if read_energy_density == 1:
                 if read_eigenvalues:
                     energy_density_eigen[eigen_number][en_last] = np.average(ener_int_pt)
@@ -380,7 +343,6 @@ def import_FI_int_pt(file_nameW, domains, criteria, domain_FI, file_name, elm_st
             read_stresses -= 1
             read_energy_density -= 1
             read_displacement -= 1
-            FI_int_pt = [[] for _ in range(len(criteria))]
             ener_int_pt = []
             en_last = None
 
@@ -389,7 +351,6 @@ def import_FI_int_pt(file_nameW, domains, criteria, domain_FI, file_name, elm_st
                 read_stresses = 2
                 if last_time != line_split[-1]:
                     step_number += 1
-                    FI_step.append({})
                     energy_density_step.append({})
                     last_time = line_split[-1]
                     read_eigenvalues = False  # TODO not for frequencies?
@@ -398,7 +359,6 @@ def import_FI_int_pt(file_nameW, domains, criteria, domain_FI, file_name, elm_st
                 read_energy_density = 2
                 if last_time != line_split[-1]:
                     step_number += 1
-                    FI_step.append({})
                     energy_density_step.append({})
                     last_time = line_split[-1]
                     read_eigenvalues = False  # TODO not for frequencies?
@@ -416,23 +376,6 @@ def import_FI_int_pt(file_nameW, domains, criteria, domain_FI, file_name, elm_st
                     disp_condition[cn] = []
                 cn += 1
             read_displacement = 2
-        elif read_stresses == 1:
-            en = int(line_split[0])
-            if en_last != en:
-                if en_last:
-                    save_FI(step_number, en_last)
-                    FI_int_pt = [[] for _ in range(len(criteria))]
-                en_last = en
-            sxx = float(line_split[2])
-            syy = float(line_split[3])
-            szz = float(line_split[4])
-            sxy = float(line_split[5])
-            sxz = float(line_split[6])
-            syz = float(line_split[7])
-            syx = sxy
-            szx = sxz
-            szy = syz
-            compute_FI()
 
         elif read_energy_density == 1:
             en = int(line_split[0])
@@ -458,8 +401,6 @@ def import_FI_int_pt(file_nameW, domains, criteria, domain_FI, file_name, elm_st
                 else:
                     disp_condition[cn].append(eval(component))
 
-    if read_stresses == 1:
-        save_FI(step_number, en_last)
     if read_energy_density == 1:
         if read_eigenvalues:
             energy_density_eigen[eigen_number][en_last] = np.average(ener_int_pt)
@@ -473,18 +414,18 @@ def import_FI_int_pt(file_nameW, domains, criteria, domain_FI, file_name, elm_st
                 disp_i[cn] = max(disp_condition[cn])
     f.close()
 
-    return FI_step, energy_density_step, disp_i, energy_density_eigen
+    return energy_density_step, disp_i, energy_density_eigen
 
 # function for switch element states
-def switching(elm_states, domains_from_config, domain_optimized, domains, FI_step_max, domain_density, domain_thickness,
+def switching(elm_states, domains_from_config, domain_optimized, domains, domain_density, domain_thickness,
               domain_shells, area_elm, volume_elm, sensitivity_number, mass, mass_referential, mass_addition_ratio,
-              mass_removal_ratio, decay_coefficient, FI_violated, i_violated, i,
+              mass_removal_ratio, decay_coefficient, i_violated, i,
               mass_goal_i):
 
-    def compute_difference(failing=False):
+    def compute_difference():
         if en in domain_shells[dn]:  # shells mass difference
             mass[i] += area_elm[en] * domain_density[dn][elm_states_en] * domain_thickness[dn][elm_states_en]
-            if (failing is False) and (elm_states_en != 0):  # for potential switching down
+            if elm_states_en != 0:  # for potential switching down
                 mass_decrease[en] = area_elm[en] * (
                     domain_density[dn][elm_states_en] * domain_thickness[dn][elm_states_en] -
                     domain_density[dn][elm_states_en - 1] * domain_thickness[dn][elm_states_en - 1])
@@ -494,7 +435,7 @@ def switching(elm_states, domains_from_config, domain_optimized, domains, FI_ste
                     domain_density[dn][elm_states_en] * domain_thickness[dn][elm_states_en])
         else:  # volumes mass difference
             mass[i] += volume_elm[en] * domain_density[dn][elm_states_en]
-            if (failing is False) and (elm_states_en != 0):  # for potential switching down
+            if elm_states_en != 0:  # for potential switching down
                 mass_decrease[en] = volume_elm[en] * (
                     domain_density[dn][elm_states_en] - domain_density[dn][elm_states_en - 1])
             if elm_states_en < len(domain_density[dn]) - 1:  # for potential switching up
@@ -509,46 +450,19 @@ def switching(elm_states, domains_from_config, domain_optimized, domains, FI_ste
     # switch up overloaded elements
     for dn in domains_from_config:
         if domain_optimized[dn] is True:
-            len_domain_density_dn = len(domain_density[dn])
             for en in domains[dn]:
-                if FI_step_max[en] >= 1:  # increase state if it is not the highest
-                    en_added = False
-                    if elm_states[en] < len_domain_density_dn - 1:
-                        elm_states[en] += 1
-                        en_added = True
-                    elm_states_en = elm_states[en]
-                    if en in domain_shells[dn]:  # shells
-                        mass[i] += area_elm[en] * domain_density[dn][elm_states_en] * domain_thickness[
-                            dn][elm_states_en]
-                        if en_added is True:
-                            mass_difference = area_elm[en] * (
-                                domain_density[dn][elm_states_en] * domain_thickness[dn][elm_states_en] -
-                                domain_density[dn][elm_states_en - 1] * domain_thickness[dn][elm_states_en - 1])
-                            mass_overloaded += mass_difference
-                            mass_goal_i += mass_difference
-                    else:  # volumes
-                        mass[i] += volume_elm[en] * domain_density[dn][elm_states_en]
-                        if en_added is True:
-                            mass_difference = volume_elm[en] * (
-                                domain_density[dn][elm_states_en] - domain_density[dn][elm_states_en - 1])
-                            mass_overloaded += mass_difference
-                            mass_goal_i += mass_difference
-                else:  # rest of elements prepare to sorting and switching
-                    elm_states_en = elm_states[en]
-                    compute_difference()  # mass to add or remove
-                    sensitivity_number_opt[en] = sensitivity_number[en]
+                # rest of elements prepare to sorting and switching
+                elm_states_en = elm_states[en]
+                compute_difference()  # mass to add or remove
+                sensitivity_number_opt[en] = sensitivity_number[en]
     # sorting
     sensitivity_number_sorted = sorted(sensitivity_number_opt.items(), key=operator.itemgetter(1))
     sensitivity_number_sorted2 = list(sensitivity_number_sorted)
     if i_violated:
         if mass_removal_ratio - mass_addition_ratio > 0:  # removing from initial mass
             mass_to_add = mass_addition_ratio * mass_referential * np.exp(decay_coefficient * (i - i_violated))
-            if sum(FI_violated[i - 1]):
-                mass_to_remove = mass_addition_ratio * mass_referential * np.exp(decay_coefficient * (i - i_violated)) \
-                                 - mass_overloaded
-            else:
-                mass_to_remove = mass_removal_ratio * mass_referential * np.exp(decay_coefficient * (i - i_violated)) \
-                                 - mass_overloaded
+            mass_to_remove = mass_removal_ratio * mass_referential * np.exp(decay_coefficient * (i - i_violated)) \
+                                - mass_overloaded
         else:  # adding to initial mass  TODO include stress limit
             mass_to_add = mass_removal_ratio * mass_referential * np.exp(decay_coefficient * (i - i_violated))
             mass_to_remove = mass_to_add
@@ -873,9 +787,10 @@ def append_vtk_states(file_nameW, i, en_all, elm_states):
     f.write("\n")
     f.close()
 
+
 # function for exporting result in the legacy vtk format
 # nodes and elements are renumbered from 0 not to jump over values
-def export_vtk(file_nameW, nodes, Elements, elm_states, sensitivity_number, criteria, FI_step, FI_step_max):
+def export_vtk(file_nameW, nodes, Elements, elm_states, sensitivity_number):
     [en_all, associated_nodes] = vtk_mesh(file_nameW, nodes, Elements)
     f = open(file_nameW + ".vtk", "a")
 
@@ -896,44 +811,6 @@ def export_vtk(file_nameW, nodes, Elements, elm_states, sensitivity_number, crit
     line_count = 0
     for en in en_all:
         f.write(str(sensitivity_number[en]) + " ")
-        line_count += 1
-        if line_count % 6 == 0:
-            f.write("\n")
-    f.write("\n")
-
-    # FI
-    FI_criteria = {}  # list of FI on each element
-    for en in en_all:
-        FI_criteria[en] = [None for _ in range(len(criteria))]
-        for sn in range(len(FI_step)):
-            for FIn in range(len(criteria)):
-                if FI_step[sn][en][FIn]:
-                    if FI_criteria[en][FIn]:
-                        FI_criteria[en][FIn] = max(FI_criteria[en][FIn], FI_step[sn][en][FIn])
-                    else:
-                        FI_criteria[en][FIn] = FI_step[sn][en][FIn]
-
-    for FIn in range(len(criteria)):
-        if criteria[FIn][0] == "stress_von_Mises":
-            f.write("\nSCALARS FI=stress_von_Mises/" + str(criteria[FIn][1]).strip() + " float\n")
-        f.write("LOOKUP_TABLE default\n")
-        line_count = 0
-        for en in en_all:
-            if FI_criteria[en][FIn]:
-                f.write(str(FI_criteria[en][FIn]) + " ")
-            else:
-                f.write("0 ")  # since Paraview do not recognise None value
-            line_count += 1
-            if line_count % 6 == 0:
-                f.write("\n")
-        f.write("\n")
-
-    # FI_max
-    f.write("\nSCALARS FI_max float\n")
-    f.write("LOOKUP_TABLE default\n")
-    line_count = 0
-    for en in en_all:
-        f.write(str(FI_step_max[en]) + " ")
         line_count += 1
         if line_count % 6 == 0:
             f.write("\n")
@@ -986,41 +863,15 @@ def export_vtk(file_nameW, nodes, Elements, elm_states, sensitivity_number, crit
 # function for exporting element values to csv file for displaying in Paraview, output format:
 # element_number, cg_x, cg_y, cg_z, element_state, sensitivity_number, failure indices 1, 2,..., maximal failure index
 # only elements found by import_inp function are taken into account
-def export_csv(domains_from_config, domains, criteria, FI_step, FI_step_max, file_nameW, cg, elm_states,
+def export_csv(domains_from_config, domains, file_nameW, cg, elm_states,
                sensitivity_number):
-    # associate FI to each element and get maximums
-    FI_criteria = {}  # list of FI on each element
-    for dn in domains_from_config:
-        for en in domains[dn]:
-            FI_criteria[en] = [None for _ in range(len(criteria))]
-            for sn in range(len(FI_step)):
-                for FIn in range(len(criteria)):
-                    if FI_step[sn][en][FIn]:
-                        if FI_criteria[en][FIn]:
-                            FI_criteria[en][FIn] = max(FI_criteria[en][FIn], FI_step[sn][en][FIn])
-                        else:
-                            FI_criteria[en][FIn] = FI_step[sn][en][FIn]
-
     # write element values to the csv file
     f = open(file_nameW + ".csv", "w")
-    line = "element_number, cg_x, cg_y, cg_z, element_state, sensitivity_number, "
-    for cr in criteria:
-        if cr[0] == "stress_von_Mises":
-            line += "FI=stress_von_Mises/" + str(cr[1]).strip() + ", "
-        else:
-            line += "FI=" + cr[1].replace(" ", "") + ", "
-    line += "FI_max\n"
+    line = "element_number, cg_x, cg_y, cg_z, element_state, sensitivity_number"
     f.write(line)
     for dn in domains_from_config:
         for en in domains[dn]:
             line = str(en) + ", " + str(cg[en][0]) + ", " + str(cg[en][1]) + ", " + str(cg[en][2]) + ", " + \
-                   str(elm_states[en]) + ", " + str(sensitivity_number[en]) + ", "
-            for FIn in range(len(criteria)):
-                if FI_criteria[en][FIn]:
-                    value = FI_criteria[en][FIn]
-                else:
-                    value = 0  # since Paraview do not recognise None value
-                line += str(value) + ", "
-            line += str(FI_step_max[en]) + "\n"
+                   str(elm_states[en]) + ", " + str(sensitivity_number[en])
             f.write(line)
     f.close()

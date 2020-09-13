@@ -20,14 +20,6 @@ domain_offset[elset_name] = 0.0  # offset of shell elements
                                      # ANISOTROPIC - different values in all directions - wood and composites
 domain_orientation[elset_name] = []  # orientations for each state referring to inp file,
                                      # e.g. for 2 states ["or1", "or1"], for isotropic material use empty list []
-domain_FI[elset_name] = [[("stress_von_Mises", 450.0e6)],  # inner tuples () for separate Failure indices
-                         [("stress_von_Mises", 450.0)]]  # new inner list [] for the next state of switch_elm
-                        # Failure Indices definition in python tuples (separate FI for each element state if there are more lists)
-                        # Failure Indice FI = element stress / allowable value
-                        # Failure Indices are not evaluated if they are not defined here, i.e. domain_FI[elset_name] = [],
-                        # and then optimization_base must not be "failure_index"
-                        # examples:
-                        # [("stress_von_Mises", 450.0)]  # for von Mises stress give only allowable stress
 # TODO: Can we just parse this from *MATERIAL section in the INP file instead?
 domain_material[elset_name] = ["*ELASTIC \n210000e-6,  0.3",  # material definition after CalculiX *MATERIAL card, use \n for line break
                                "*ELASTIC \n210000,  0.3"]  # next string for the next state of switch_elm
@@ -42,8 +34,7 @@ filter_list = [["simple", 2]]  # [[filter type, range], [next filter type, range
                             # works on sensitivities
 # ADVANCED INPUTS:
 
-optimization_base = "failure_index"  # "stiffness" - maximization of stiffness (minimization of compliance)
-                                     # "failure_index" sensitivity number is given by FI/density
+optimization_base = "stiffness"  # "stiffness" - maximization of stiffness (minimization of compliance)
 
 FI_violated_tolerance = 1  # N - freeze mass if, compared to initial state, there is N more elements with FI >= 1
 decay_coefficient = -0.2  # k - exponential decay coefficient to dump mass_additive_ratio and mass_removal_ratio after freezing mass
