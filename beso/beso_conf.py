@@ -13,6 +13,7 @@ elset_name = "SolidMaterialElementGeometry2D"  # string with name of the element
 # TODO: Instead of sets of tuples, and we have domain configuration dictionaries?
 domain_optimized[elset_name] = True  # True - optimized domain, False - elements will not be removed
 domain_density[elset_name] = [1e-6, 1]  # equivalent density of the domain material for states of switch_elm
+# TODO: Can we just parse this from *SHELL SECTION in the INP file instead?
 domain_thickness[elset_name] = [1.0, 1.0]  # thickness of shell elements for states of switch_elm
 domain_offset[elset_name] = 0.0  # offset of shell elements
                                      # ISOTROPIC - identical values in all directions - glass and metal
@@ -27,7 +28,7 @@ domain_FI[elset_name] = [[("stress_von_Mises", 450.0e6)],  # inner tuples () for
                         # and then optimization_base must not be "failure_index"
                         # examples:
                         # [("stress_von_Mises", 450.0)]  # for von Mises stress give only allowable stress
-# TODO: Can we just parse this from the INP file instead?
+# TODO: Can we just parse this from *MATERIAL section in the INP file instead?
 domain_material[elset_name] = ["*ELASTIC \n210000e-6,  0.3",  # material definition after CalculiX *MATERIAL card, use \n for line break
                                "*ELASTIC \n210000,  0.3"]  # next string for the next state of switch_elm
 # copy this block for defining properties of the next domain
