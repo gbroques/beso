@@ -29,7 +29,6 @@ file_name = "Plane_Mesh.inp"
 mass_goal_ratio = 0.4
 filter_list = [["simple", 0]]
 optimization_base = "stiffness"
-FI_violated_tolerance = 1
 decay_coefficient = -0.2
 shells_as_composite = False
 sensitivity_averaging = False
@@ -85,7 +84,6 @@ for dn in domain_optimized:
 msg += ("mass_goal_ratio         = %s\n" % mass_goal_ratio)
 msg += ("filter_list             = %s\n" % filter_list)
 msg += ("optimization_base       = %s\n" % optimization_base)
-msg += ("FI_violated_tolerance   = %s\n" % FI_violated_tolerance)
 msg += ("decay_coefficient       = %s\n" % decay_coefficient)
 msg += ("shells_as_composite     = %s\n" % shells_as_composite)
 msg += ("mass_addition_ratio     = %s\n" % mass_addition_ratio)
@@ -145,7 +143,6 @@ print("initial optimization domains mass {}" .format(mass[0]))
 # iterations limit - default "auto"matic setting
 iterations_limit = 0
 m = mass[0] / mass_full
-# if ratio_type == "relative":
 it = 0
 if mass_removal_ratio - mass_addition_ratio > 0:
     while m > mass_goal_ratio:
@@ -399,7 +396,6 @@ while True:
             mass_goal_i = mass_goal_ratio * mass_full
 
     # switch element states
-    # if ratio_type == "relative"
     mass_referential = mass[i - 1]
     [elm_states, mass] = beso_lib.switching(elm_states, domains_from_config, domain_optimized, domains,
                                             domain_density, domain_thickness, domain_shells, area_elm, volume_elm,

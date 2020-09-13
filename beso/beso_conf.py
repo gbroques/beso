@@ -36,9 +36,8 @@ filter_list = [["simple", 2]]  # [[filter type, range], [next filter type, range
 
 optimization_base = "stiffness"  # "stiffness" - maximization of stiffness (minimization of compliance)
 
-FI_violated_tolerance = 1  # N - freeze mass if, compared to initial state, there is N more elements with FI >= 1
 decay_coefficient = -0.2  # k - exponential decay coefficient to dump mass_additive_ratio and mass_removal_ratio after freezing mass
-                          # fits to equation: exp(k * i), where i is iteration number from triggering by exceeding FI_violated_tolerance
+                          # fits to equation: exp(k * i), where i is iteration number from triggering by reaching goal mass ratio?
                           # k = -0.2 ~ after 10 iterations slows down approximately 10 times
                           # k = 0 ~ no decaying
 
