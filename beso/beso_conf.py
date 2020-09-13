@@ -32,6 +32,7 @@ mass_goal_ratio = 0.40  # the goal mass as a fragment of the full mass of optimi
 
 # TODO: Can we automatically determine the filter radius from mesh element size?
 #       Heuristic is element size * 2 or * 3.
+# TODO: Filter radius of 0.1 (small) causes infinite loop
 filter_radius = 2
 # averages sensitivity number with surroundings (suffer from boundary sticking?),
 # works on sensitivities
