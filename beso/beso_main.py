@@ -34,7 +34,6 @@ shells_as_composite = False
 sensitivity_averaging = False
 mass_addition_ratio = 0.01
 mass_removal_ratio = 0.03
-displacement_graph = []
 save_iteration_results = 1
 save_solver_files = ""
 save_resulting_format = "inp vtk"
@@ -89,7 +88,6 @@ msg += ("shells_as_composite     = %s\n" % shells_as_composite)
 msg += ("mass_addition_ratio     = %s\n" % mass_addition_ratio)
 msg += ("mass_removal_ratio      = %s\n" % mass_removal_ratio)
 msg += ("sensitivity_averaging   = %s\n" % sensitivity_averaging)
-msg += ("displacement_graph      = %s\n" % displacement_graph)
 msg += ("save_iteration_results  = %s\n" % save_iteration_results)
 msg += ("save_solver_files       = %s\n" % save_solver_files)
 msg += ("save_resulting_format   = %s\n" % save_resulting_format)
@@ -197,12 +195,6 @@ for dn in domains_from_config:
 msg += "\n   i              mass"
 if optimization_base == "stiffness":
     msg += "    ener_dens_mean"
-if displacement_graph:
-    for (ns, component) in displacement_graph:
-        if component == "total":  # total displacement
-            msg += (" " + ns + "(u_total)").rjust(18, " ")
-        else:
-            msg += (" " + ns + "(" + component + ")").rjust(18, " ")
 
 msg += "\n"
 logging.info(msg)
@@ -220,7 +212,6 @@ file_name_resulting_states = os.path.join(path, "resulting_states")
 sensitivity_number = {}
 sensitivity_number_old = {}
 energy_density_mean = []  # list of mean energy density in every iteration
-disp_max = []
 i = 0
 i_violated = 0
 continue_iterations = True
@@ -240,7 +231,7 @@ while True:
     beso_lib.write_inp(file_name, file_nameW, elm_states, number_of_states, domains, domains_from_config,
                        domain_optimized, domain_thickness, domain_offset, domain_orientation, domain_material,
                        domain_volumes, domain_shells, plane_strain, plane_stress, axisymmetry, save_iteration_results,
-                       i, shells_as_composite, optimization_base, displacement_graph)
+                       i, shells_as_composite, optimization_base)
     # running CalculiX analysis
     ccx_path = shutil.which('ccx')
     if ccx_path is None:
@@ -254,10 +245,9 @@ while True:
     # reading results and computing failure indices
     # if reference_points == "integration points" or optimization_base == stiffness
     # from .dat file
-    [energy_density_step, disp_i, energy_density_eigen] = \
+    [energy_density_step, energy_density_eigen] = \
         beso_lib.import_FI_int_pt(file_nameW, domains, file_name, elm_states,
-                                  domains_from_config, displacement_graph)
-    disp_max.append(disp_i)
+                                  domains_from_config)
 
     # check if results were found
     missing_ccx_results = False
@@ -331,8 +321,6 @@ while True:
     msg = str(i).rjust(4, " ") + " " + str(mass[i]).rjust(17, " ") + " "
     if optimization_base == "stiffness":
         msg += " " + str(energy_density_mean[i]).rjust(17, " ")
-    for cn in range(len(displacement_graph)):
-        msg += " " + str(disp_i[cn]).rjust(17, " ")
     logging.info(msg)
 
     # export element values
@@ -533,24 +521,6 @@ if optimization_base == "stiffness":
     plt.grid()
     plt.tight_layout()
     plt.savefig(os.path.join(path, "energy_density_mean"), dpi=100)
-
-if displacement_graph:
-    fn += 1
-    plt.figure(fn)
-    for cn in range(len(displacement_graph)):
-        disp_max_cn = []
-        for ii in range(i + 1):
-            disp_max_cn.append(disp_max[ii][cn])
-        plt.plot(range(i + 1), disp_max_cn,
-                 label=displacement_graph[cn][0] + "(" + displacement_graph[cn][1] + ")")
-    plt.legend(loc=2, fontsize=10)
-    plt.title("Node set maximal displacements")
-    plt.xlabel("Iteration")
-    plt.ylabel("Displacement")
-    plt.grid()
-    plt.tight_layout()
-    plt.savefig(os.path.join(path, "Displacement_max"), dpi=100)
-
 
 plt.show()
 # ==============================================================================

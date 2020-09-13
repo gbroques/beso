@@ -151,7 +151,7 @@ def elm_volume_cg(file_name, nodes, Elements):
 def write_inp(file_name, file_nameW, elm_states, number_of_states, domains, domains_from_config, domain_optimized,
               domain_thickness, domain_offset, domain_orientation, domain_material, domain_volumes, domain_shells,
               plane_strain, plane_stress, axisymmetry, save_iteration_results, i, shells_as_composite,
-              optimization_base, displacement_graph):
+              optimization_base):
     fR = open(file_name, "r")
     check_line_endings = False
     try:
@@ -277,13 +277,6 @@ def write_inp(file_name, file_nameW, elm_states, number_of_states, domains, doma
                     for dn in domains_from_config:
                         fW.write("*EL PRINT, " + "ELSET=" + dn + "\n")
                         fW.write("ENER\n")
-                if displacement_graph:
-                    ns_written = []
-                    for [ns, component] in displacement_graph:
-                        if ns not in ns_written:
-                            ns_written.append(ns)
-                            fW.write("*NODE PRINT, NSET=" + ns + "\n")
-                            fW.write("U\n")
                 fW.write(" \n")
                 outputs_done += 1
             commenting = True
@@ -307,8 +300,7 @@ def write_inp(file_name, file_nameW, elm_states, number_of_states, domains, doma
 
 # function for importing results from .dat file
 # Failure Indices are computed at each integration point and maximum or average above each element is returned
-def import_FI_int_pt(file_nameW, domains, file_name, elm_states,
-                     domains_from_config, displacement_graph):
+def import_FI_int_pt(file_nameW, domains, file_name, elm_states, domains_from_config):
     try:
         f = open(file_nameW + ".dat", "r")
     except IOError:
@@ -322,9 +314,6 @@ def import_FI_int_pt(file_nameW, domains, file_name, elm_states,
 
     read_stresses = 0
     read_energy_density = 0
-    read_displacement = 0
-    disp_i = [None for _ in range(len(displacement_graph))]
-    disp_condition = {}
     read_eigenvalues = 0
     for line in f:
         line_split = line.split()
@@ -334,15 +323,8 @@ def import_FI_int_pt(file_nameW, domains, file_name, elm_states,
                     energy_density_eigen[eigen_number][en_last] = np.average(ener_int_pt)
                 else:
                     energy_density_step[step_number][en_last] = np.average(ener_int_pt)
-            if read_displacement == 1:
-                for cn in ns_reading:
-                    try:
-                        disp_i[cn] = max([disp_i[cn]] + disp_condition[cn])
-                    except TypeError:
-                        disp_i[cn] = max(disp_condition[cn])
             read_stresses -= 1
             read_energy_density -= 1
-            read_displacement -= 1
             ener_int_pt = []
             en_last = None
 
@@ -366,17 +348,6 @@ def import_FI_int_pt(file_nameW, domains, file_name, elm_states,
             eigen_number = int(line_split[-1])
             read_eigenvalues = True
             energy_density_eigen[eigen_number] = {}
-
-        elif line[:14] == " displacements":
-            cn = 0
-            ns_reading = []
-            for [ns, component] in displacement_graph:
-                if ns.upper() == line_split[4]:
-                    ns_reading.append(cn)
-                    disp_condition[cn] = []
-                cn += 1
-            read_displacement = 2
-
         elif read_energy_density == 1:
             en = int(line_split[0])
             if en_last != en:
@@ -390,31 +361,14 @@ def import_FI_int_pt(file_nameW, domains, file_name, elm_states,
             energy_density = float(line_split[2])
             ener_int_pt.append(energy_density)
 
-        elif read_displacement == 1:
-            ux = float(line_split[1])
-            uy = float(line_split[2])
-            uz = float(line_split[3])
-            for cn in ns_reading:
-                component = displacement_graph[cn][1]
-                if component.upper() == "TOTAL":  # total displacement
-                    disp_condition[cn].append(sqrt(ux ** 2 + uy ** 2 + uz ** 2))
-                else:
-                    disp_condition[cn].append(eval(component))
-
     if read_energy_density == 1:
         if read_eigenvalues:
             energy_density_eigen[eigen_number][en_last] = np.average(ener_int_pt)
         else:
             energy_density_step[step_number][en_last] = np.average(ener_int_pt)
-    if read_displacement == 1:
-        for cn in ns_reading:
-            try:
-                disp_i[cn] = max([disp_i[cn]] + disp_condition[cn])
-            except TypeError:
-                disp_i[cn] = max(disp_condition[cn])
     f.close()
 
-    return energy_density_step, disp_i, energy_density_eigen
+    return energy_density_step, energy_density_eigen
 
 # function for switch element states
 def switching(elm_states, domains_from_config, domain_optimized, domains, domain_density, domain_thickness,
