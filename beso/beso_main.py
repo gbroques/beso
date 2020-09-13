@@ -612,8 +612,10 @@ while True:
 #                   END OF MAIN LOOP
 # ===================================================
 
+# ---------------------------------------------------------------------
 
-# export the resulting mesh
+# EXPORTING RESULT MESH
+# ================================
 if not (save_iteration_results and np.mod(float(i), save_iteration_results) == 0):
     if "frd" in save_resulting_format:
         beso_lib.export_frd(file_nameW, nodes, Elements,
@@ -621,8 +623,13 @@ if not (save_iteration_results and np.mod(float(i), save_iteration_results) == 0
     if "inp" in save_resulting_format:
         beso_lib.export_inp(file_nameW, nodes, Elements,
                             elm_states, number_of_states)
+# ================================
 
-# removing solver files
+# ---------------------------------------------------------------------
+
+# REMOVING SOLVER FILES
+# TODO: This block is duplicated above.
+# ================================
 if "inp" not in save_solver_files:
     os.remove(file_nameW + ".inp")
 if "dat" not in save_solver_files:
@@ -633,8 +640,12 @@ if "sta" not in save_solver_files:
     os.remove(file_nameW + ".sta")
 if "cvg" not in save_solver_files:
     os.remove(file_nameW + ".cvg")
+# ================================
 
-# print total time
+# ---------------------------------------------------------------------
+
+# PRINT TOTAL TIME
+# =====================================================================
 total_time = time.time() - start_time
 total_time_h = int(total_time / 3600.0)
 total_time_min = int((total_time % 3600) / 60.0)
@@ -647,6 +658,9 @@ msg += "\n"
 logging.info(msg)
 print("total time: " + str(total_time_h) + " h " +
       str(total_time_min) + " min " + str(total_time_s) + " s")
+# =====================================================================
+
+# ---------------------------------------------------------------------
 
 # TODO: Separate plotting from main beso algorithm
 #       Remove dependency on matplotlib
